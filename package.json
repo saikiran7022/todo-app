@@ -1,16 +1,17 @@
 {
-  "name": "todo-app",
-  "version": "1.0.0",
-  "description": "A simple Todo List app with REST API",
+  "name": "together-todo",
+  "version": "2.0.0",
+  "description": "Collaborative task management — negotiated, not dumped",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "test": "node --test test/api.test.js"
   },
   "dependencies": {
-    "express": "^4.18.2"
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^9.4.3",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2"
   },
-  "engines": {
-    "node": ">=18"
-  }
+  "engines": { "node": ">=18" }
 }

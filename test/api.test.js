@@ -1,168 +1,175 @@
 const { test, before, after, describe } = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('http');
+const path = require('path');
 
 process.env.PORT = 0;
-process.env.AUTH_USER = 'admin';
-process.env.AUTH_PASS = 'password123';
+process.env.DB_PATH = path.join(__dirname, 'test.db');
+process.env.JWT_SECRET = 'test-secret';
 
-let server, baseUrl, authToken;
+let server, baseUrl, tokenA, tokenB, userA, userB, listId, taskId;
 
 before(async () => {
+  // Clean test db
+  try { require('fs').unlinkSync(process.env.DB_PATH); } catch {}
   const app = require('../server');
   server = app.server;
   await new Promise(resolve => server.on('listening', resolve));
   const { port } = server.address();
   baseUrl = `http://localhost:${port}`;
 });
-after(() => server.close());
+after(() => { server.close(); try { require('fs').unlinkSync(process.env.DB_PATH); } catch {} });
 
 async function req(method, path, body, token) {
   return new Promise((resolve, reject) => {
     const url = new URL(path, baseUrl);
     const hdrs = { 'Content-Type': 'application/json' };
     if (token) hdrs['x-auth-token'] = token;
-    const options = { method, hostname: url.hostname, port: url.port, path: url.pathname, headers: hdrs };
-    const r = http.request(options, res => {
-      let data = '';
-      res.on('data', c => data += c);
-      res.on('end', () => resolve({ status: res.statusCode, body: JSON.parse(data) }));
+    const r = http.request({ method, hostname: url.hostname, port: url.port, path: url.pathname + url.search, headers: hdrs }, res => {
+      let d = ''; res.on('data', c => d += c); res.on('end', () => resolve({ status: res.statusCode, body: JSON.parse(d || '{}') }));
     });
-    r.on('error', reject);
-    if (body) r.write(JSON.stringify(body));
-    r.end();
+    r.on('error', reject); if (body) r.write(JSON.stringify(body)); r.end();
   });
 }
 
-describe('Auth API', () => {
-  test('register new user', async () => {
-    const res = await req('POST', '/api/auth/register', { username: 'testuser', password: 'pass123' });
-    assert.equal(res.status, 201);
-    assert.ok(res.body.token);
-    assert.equal(res.body.username, 'testuser');
+describe('Auth', () => {
+  test('register user A', async () => {
+    const r = await req('POST', '/api/auth/register', { username: 'alice', password: 'pass123' });
+    assert.equal(r.status, 201); assert.ok(r.body.token);
+    tokenA = r.body.token; userA = { id: r.body.userId, username: 'alice' };
   });
-
-  test('register duplicate username returns 409', async () => {
-    await req('POST', '/api/auth/register', { username: 'dupuser', password: 'pass123' });
-    const res = await req('POST', '/api/auth/register', { username: 'dupuser', password: 'pass123' });
-    assert.equal(res.status, 409);
+  test('register user B', async () => {
+    const r = await req('POST', '/api/auth/register', { username: 'bob', password: 'pass456' });
+    assert.equal(r.status, 201); tokenB = r.body.token; userB = { id: r.body.userId, username: 'bob' };
   });
-
-  test('register short password returns 400', async () => {
-    const res = await req('POST', '/api/auth/register', { username: 'newuser2', password: '123' });
-    assert.equal(res.status, 400);
+  test('duplicate username → 409', async () => {
+    assert.equal((await req('POST', '/api/auth/register', { username: 'alice', password: 'validpass' })).status, 409);
   });
-
-  test('login with valid credentials', async () => {
-    const res = await req('POST', '/api/auth/login', { username: 'admin', password: 'password123' });
-    assert.equal(res.status, 200);
-    assert.ok(res.body.token);
-    authToken = res.body.token;
+  test('short password → 400', async () => {
+    assert.equal((await req('POST', '/api/auth/register', { username: 'new', password: '123' })).status, 400);
   });
-
-  test('login with invalid credentials returns 401', async () => {
-    const res = await req('POST', '/api/auth/login', { username: 'admin', password: 'wrong' });
-    assert.equal(res.status, 401);
+  test('login valid', async () => {
+    const r = await req('POST', '/api/auth/login', { username: 'alice', password: 'pass123' });
+    assert.equal(r.status, 200); assert.ok(r.body.token);
   });
-
-  test('GET /api/auth/me with valid token', async () => {
-    const res = await req('GET', '/api/auth/me', null, authToken);
-    assert.equal(res.status, 200);
-    assert.equal(res.body.username, 'admin');
+  test('login invalid → 401', async () => {
+    assert.equal((await req('POST', '/api/auth/login', { username: 'alice', password: 'wrong' })).status, 401);
   });
-
-  test('GET /api/auth/me without token returns 401', async () => {
-    const res = await req('GET', '/api/auth/me');
-    assert.equal(res.status, 401);
+  test('GET /me', async () => {
+    const r = await req('GET', '/api/auth/me', null, tokenA);
+    assert.equal(r.status, 200); assert.equal(r.body.username, 'alice');
+  });
+  test('GET /me no token → 401', async () => {
+    assert.equal((await req('GET', '/api/auth/me')).status, 401);
   });
 });
 
-describe('Todo API', () => {
-  test('GET /api/todos returns array', async () => {
-    const res = await req('GET', '/api/todos', null, authToken);
-    assert.equal(res.status, 200);
-    assert.ok(Array.isArray(res.body));
+describe('Lists', () => {
+  test('create list', async () => {
+    const r = await req('POST', '/api/lists', { name: 'Home', mode: 'couple' }, tokenA);
+    assert.equal(r.status, 201); assert.equal(r.body.name, 'Home'); listId = r.body.id;
   });
-
-  test('GET /api/todos without token returns 401', async () => {
-    const res = await req('GET', '/api/todos');
-    assert.equal(res.status, 401);
+  test('get lists', async () => {
+    const r = await req('GET', '/api/lists', null, tokenA);
+    assert.equal(r.status, 200); assert.ok(Array.isArray(r.body)); assert.ok(r.body.length >= 1);
   });
-
-  test('POST creates todo with tags, color, priority', async () => {
-    const res = await req('POST', '/api/todos', {
-      text: 'Buy groceries', priority: 'high', color: 'red', tags: ['personal'], quadrant: 'ui'
-    }, authToken);
-    assert.equal(res.status, 201);
-    assert.equal(res.body.text, 'Buy groceries');
-    assert.equal(res.body.priority, 'high');
-    assert.equal(res.body.color, 'red');
-    assert.deepEqual(res.body.tags, ['personal']);
-    assert.equal(res.body.quadrant, 'ui');
+  test('invite member', async () => {
+    const r = await req('POST', `/api/lists/${listId}/invite`, { username: 'bob' }, tokenA);
+    assert.equal(r.status, 200);
   });
-
-  test('POST returns 400 for empty text', async () => {
-    const res = await req('POST', '/api/todos', { text: '' }, authToken);
-    assert.equal(res.status, 400);
-  });
-
-  test('PATCH marks todo completed and syncs status', async () => {
-    const created = await req('POST', '/api/todos', { text: 'Patch test' }, authToken);
-    const id = created.body.id;
-    const res = await req('PATCH', `/api/todos/${id}`, { completed: true }, authToken);
-    assert.equal(res.status, 200);
-    assert.equal(res.body.completed, true);
-    assert.equal(res.body.status, 'done');
-  });
-
-  test('PATCH moves to kanban status', async () => {
-    const created = await req('POST', '/api/todos', { text: 'Kanban task' }, authToken);
-    const id = created.body.id;
-    const res = await req('PATCH', `/api/todos/${id}`, { status: 'doing' }, authToken);
-    assert.equal(res.status, 200);
-    assert.equal(res.body.status, 'doing');
-  });
-
-  test('PATCH sets isTopGoal', async () => {
-    const created = await req('POST', '/api/todos', { text: 'Top goal' }, authToken);
-    const id = created.body.id;
-    const res = await req('PATCH', `/api/todos/${id}`, { isTopGoal: true }, authToken);
-    assert.equal(res.status, 200);
-    assert.equal(res.body.isTopGoal, true);
-  });
-
-  test('PATCH returns 404 for unknown id', async () => {
-    const res = await req('PATCH', '/api/todos/99999', { completed: true }, authToken);
-    assert.equal(res.status, 404);
-  });
-
-  test('DELETE removes todo', async () => {
-    const created = await req('POST', '/api/todos', { text: 'To delete' }, authToken);
-    const id = created.body.id;
-    const del = await req('DELETE', `/api/todos/${id}`, null, authToken);
-    assert.equal(del.status, 200);
-    const list = await req('GET', '/api/todos', null, authToken);
-    assert.ok(!list.body.find(t => t.id === id));
-  });
-
-  test('DELETE returns 404 for unknown id', async () => {
-    const res = await req('DELETE', '/api/todos/99999', null, authToken);
-    assert.equal(res.status, 404);
+  test('get members', async () => {
+    const r = await req('GET', `/api/lists/${listId}/members`, null, tokenA);
+    assert.equal(r.status, 200); assert.equal(r.body.length, 2);
   });
 });
 
-describe('Bulk (Brain Dump)', () => {
-  test('POST /api/todos/bulk creates multiple todos', async () => {
-    const res = await req('POST', '/api/todos/bulk', {
-      texts: ['Task one', 'Task two', 'Task three'], priority: 'low'
-    }, authToken);
-    assert.equal(res.status, 201);
-    assert.equal(res.body.length, 3);
-    assert.equal(res.body[0].priority, 'low');
+describe('Tasks', () => {
+  test('create task with all fields', async () => {
+    const r = await req('POST', '/api/tasks', {
+      list_id: listId, title: 'Pay rent', priority: 'high', color: 'red',
+      tags: ['finance'], quadrant: 'ui', due_at: '2025-12-01', estimated_minutes: 30
+    }, tokenA);
+    assert.equal(r.status, 201);
+    assert.equal(r.body.title, 'Pay rent');
+    assert.equal(r.body.priority, 'high');
+    assert.deepEqual(r.body.tags, ['finance']);
+    assert.equal(r.body.quadrant, 'ui');
+    assert.ok(r.body.owner);
+    taskId = r.body.id;
   });
+  test('create task → 400 no title', async () => {
+    assert.equal((await req('POST', '/api/tasks', { list_id: listId, title: '' }, tokenA)).status, 400);
+  });
+  test('get tasks for list', async () => {
+    const r = await req('GET', `/api/tasks?list_id=${listId}`, null, tokenA);
+    assert.equal(r.status, 200); assert.ok(Array.isArray(r.body));
+  });
+  test('patch task status', async () => {
+    const r = await req('PATCH', `/api/tasks/${taskId}`, { status: 'doing' }, tokenA);
+    assert.equal(r.status, 200); assert.equal(r.body.status, 'doing');
+  });
+  test('patch completed syncs status', async () => {
+    const r = await req('PATCH', `/api/tasks/${taskId}`, { completed: true }, tokenA);
+    assert.equal(r.status, 200); assert.equal(r.body.status, 'done');
+  });
+  test('patch is_top_goal', async () => {
+    const r = await req('PATCH', `/api/tasks/${taskId}`, { is_top_goal: true }, tokenA);
+    assert.equal(r.status, 200); assert.ok(r.body.is_top_goal);
+  });
+  test('patch unknown → 404', async () => {
+    assert.equal((await req('PATCH', '/api/tasks/99999', { status: 'doing' }, tokenA)).status, 404);
+  });
+});
 
-  test('POST /api/todos/bulk returns 400 for empty array', async () => {
-    const res = await req('POST', '/api/todos/bulk', { texts: [] }, authToken);
-    assert.equal(res.status, 400);
+describe('Handoffs', () => {
+  test('handoff requires note', async () => {
+    assert.equal((await req('POST', `/api/tasks/${taskId}/handoff`, { to_user_id: userB.id, note: '' }, tokenA)).status, 400);
+  });
+  test('handoff with note', async () => {
+    const r = await req('POST', `/api/tasks/${taskId}/handoff`, { to_user_id: userB.id, note: 'Please handle this — I have context: landlord needs check by Friday' }, tokenA);
+    assert.equal(r.status, 201);
+    assert.ok(r.body.handoffs?.length >= 1);
+    assert.equal(r.body.owner?.id, userB.id);
+  });
+});
+
+describe('Negotiations', () => {
+  test('accept negotiation', async () => {
+    const r = await req('POST', `/api/tasks/${taskId}/negotiate`, { type: 'accept' }, tokenB);
+    assert.equal(r.status, 201); assert.equal(r.body.type, 'accept');
+  });
+  test('counter requires reason', async () => {
+    assert.equal((await req('POST', `/api/tasks/${taskId}/negotiate`, { type: 'counter' }, tokenA)).status, 400);
+  });
+  test('counter with reason', async () => {
+    const r = await req('POST', `/api/tasks/${taskId}/negotiate`, { type: 'counter', reason: 'Can we push to next week?', proposed_due_at: '2025-12-08' }, tokenA);
+    assert.equal(r.status, 201);
+  });
+});
+
+describe('Stakes', () => {
+  test('attach stake to task', async () => {
+    const r = await req('POST', `/api/tasks/${taskId}/stake`, { type: 'money', value: '$10' }, tokenA);
+    assert.equal(r.status, 201); assert.equal(r.body.type, 'money');
+  });
+});
+
+describe('Brain dump (bulk)', () => {
+  test('bulk create', async () => {
+    const r = await req('POST', '/api/tasks/bulk', { list_id: listId, texts: ['Write docs', 'Review PR', 'Update deps'], priority: 'low' }, tokenA);
+    assert.equal(r.status, 201); assert.equal(r.body.length, 3);
+  });
+  test('bulk empty → 400', async () => {
+    assert.equal((await req('POST', '/api/tasks/bulk', { list_id: listId, texts: [] }, tokenA)).status, 400);
+  });
+});
+
+describe('Delete', () => {
+  test('delete task', async () => {
+    const created = await req('POST', '/api/tasks', { list_id: listId, title: 'To delete' }, tokenA);
+    assert.equal((await req('DELETE', `/api/tasks/${created.body.id}`, null, tokenA)).status, 200);
+  });
+  test('delete unknown → 404', async () => {
+    assert.equal((await req('DELETE', '/api/tasks/99999', null, tokenA)).status, 404);
   });
 });
