@@ -1,7 +1,10 @@
 const express = require('express');
+const http = require('http');
 const path = require('path');
+const db = require('./db');
 
 const app = express();
+const server = http.createServer(app);
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
@@ -16,8 +19,12 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-const server = app.listen(PORT, () => {
-  console.log(`Todo app running at http://localhost:${PORT}`);
+require('./realtime').setup(server);
+
+db.ready().then(() => {
+  server.listen(PORT, () => {
+    console.log(`Together running at http://localhost:${PORT}`);
+  });
 });
 
 module.exports = { app, server };
