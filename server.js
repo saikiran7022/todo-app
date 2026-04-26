@@ -46,6 +46,8 @@ app.delete('/api/todos/:id', (req, res) => {
   res.json({ message: 'Deleted' });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Todo app running at http://localhost:${PORT}`);
 });
+
+module.exports = { app, server };
