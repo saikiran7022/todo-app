@@ -325,6 +325,20 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .ct-hist-text { margin-top: 4px; color: #a8a29e; line-height: 1.5; }
 .stake-claim-row { display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: var(--surface2); border-radius: 6px; font-size: 12px; }
 @media(max-width:720px){ .sidebar{width:280px} .content{padding:16px} .topbar{padding:12px 16px} .add-row{flex-direction:column} .add-opts{overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px} .matrix{grid-template-columns:1fr} .quadrant{min-height:100px} .today-hero{padding:16px} .today-sentence{font-size:16px} .task-card{padding:10px 11px} .task-actions{opacity:1} }
+
+/* ══ PROFESSIONAL POLISH ═══════════════════════════════ */
+.task-card { transition: all .2s ease, transform .2s var(--ease-spring); }
+.task-card:active { transform: scale(0.98); }
+.badge { letter-spacing: .3px; }
+.badge.bp-high { font-weight: 600; }
+.badge.bp-medium { font-weight: 500; }
+.badge.bp-low { font-weight: 500; }
+.task-meta { min-height: 22px; }
+.k-card, .q-item, .goal-item, .dump-item { transition: background .15s ease; }
+.k-card:active, .q-item:active { transform: scale(0.98); }
+.filter-chip, .chip { transition: all .2s ease; }
+.nav-item { position: relative; }
+.nav-item.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 60%; background: var(--accent); border-radius: 0 3px 3px 0; }
 </style>
 </head>
 <body>
@@ -647,13 +661,13 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 </div>
 
 <!-- ══ HANDOFF SHEET ═════════════════════════════════════ -->
-<div id="handoffOverlay" class="overlay" style="display:none" onclick="closeSheet('handoffOverlay',event)">
+<div id="handoffOverlay" class="overlay" style="display:none;z-index:250" onclick="closeSheet('handoffOverlay',event)">
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">Pass this task</div>
-    <div class="sheet-sub">A context note is required — give them everything they need.</div>
-    <div class="field"><label>Hand off to</label><select id="hfTarget" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:var(--r-xs);background:var(--bg);color:var(--text);font-family:var(--font)"></select></div>
-    <div class="field"><label>Context note <span style="color:var(--red)">*</span></label><textarea id="hfNote" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:var(--r-xs);font-size:13px;background:var(--bg);color:var(--text);outline:none;resize:none;min-height:80px;line-height:1.6;font-family:var(--font)" placeholder="Give them all the context they need to pick this up without asking…"></textarea></div>
+    <div class="sheet-title">Hand off this task</div>
+    <div class="sheet-sub">Pass it to someone with full context so they can pick it up without asking.</div>
+    <div class="field"><label>Assign to</label><select id="hfTarget" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:var(--r-xs);background:var(--bg);color:var(--text);font-family:var(--font)"></select></div>
+    <div class="field"><label>Context note <span style="color:var(--red)">*</span></label><textarea id="hfNote" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-xs);font-size:14px;background:var(--bg);color:var(--text);outline:none;resize:none;min-height:90px;line-height:1.6;font-family:var(--font);transition:border .2s" placeholder="What do they need to know to complete this?"></textarea></div>
     <div id="hfThread"></div>
     <button class="propose-btn" onclick="doHandoff()">Hand off →</button>
     <div class="auth-err" id="hfErr"></div>
@@ -756,9 +770,13 @@ async function finishCeremony(){
 function hexToRgb(hex){const r=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);return r?{r:parseInt(r[1],16),g:parseInt(r[2],16),b:parseInt(r[3],16)}:null}
 
 // ══ THEME ════════════════════════════════════════════
-const ST=localStorage.getItem('theme')||'light';
-document.documentElement.setAttribute('data-theme',ST);
-function toggleTheme(){const t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('theme',t)}
+let IS_DARK;
+const _st=localStorage.getItem('theme');
+if(_st) IS_DARK=_st==='dark';
+else IS_DARK=window.matchMedia('(prefers-color-scheme:dark)').matches;
+document.documentElement.setAttribute('data-theme',IS_DARK?'dark':'light');
+function toggleTheme(){IS_DARK=!IS_DARK;document.documentElement.setAttribute('data-theme',IS_DARK?'dark':'light');localStorage.setItem('theme',IS_DARK?'dark':'light')}
+window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change',e=>{if(!localStorage.getItem('theme')){document.documentElement.setAttribute('data-theme',e.matches?'dark':'light');IS_DARK=e.matches}})
 
 // ══ AUTH ══════════════════════════════════════════════
 function authTab(tab,btn){
@@ -932,13 +950,15 @@ async function addTask(){
   const title=g('tText').value.trim();if(!title||!activeListId)return;
   const tags=g('tTags').value.split(',').map(t=>t.trim()).filter(Boolean);
   const owner_id=parseInt(g('tOwner').value)||me.id;
-  const r=await api('POST','/api/tasks',{list_id:activeListId,title,priority:g('tPri').value,color:g('tColor').value,quadrant:g('tQuad').value||null,tags,owner_id,requires_pair:g('tPair').checked,verify_required:g('tVerify').checked});
-  g('tText').value='';g('tTags').value='';g('tPair').checked=false;g('tVerify').checked=false;
-  if(!r.error){tasks=[r,...tasks];renderAll();wsEmit('task_created',{data:r});}else{await fetchTasks();renderAll()}
+  const r=await api('POST','/api/tasks',{list_id:activeListId,title,priority:g('tPri').value,color:g('tColor').value,quadrant:g('tQuad').value||null,tags,owner_id,requires_pair:!!g('tPair').checked,verify_required:!!g('tVerify').checked});
+  if(r.error){alert(r.error);return}
+  g('tText').value='';g('tTags').value='';if(g('tPair'))g('tPair').checked=false;if(g('tVerify'))g('tVerify').checked=false;
+  await fetchTasks();renderAll();wsEmit('task_created',{data:r});
 }
 async function addKanban(){
   const title=g('kText').value.trim();if(!title||!activeListId)return;
-  await api('POST','/api/tasks',{list_id:activeListId,title,status:g('kSt').value});
+  const r=await api('POST','/api/tasks',{list_id:activeListId,title,status:g('kSt').value});
+  if(r.error){alert(r.error);return}
   g('kText').value='';await fetchTasks();renderKanban();
 }
 async function toggleTask(tid,done){
@@ -1185,18 +1205,21 @@ async function doHandoff(){
 
 // ══ BRAIN DUMP ════════════════════════════════════════
 function parseDump(){
+  if(!g('dumpTxt')){console.error('dumpTxt not found');return}
   const raw=g('dumpTxt').value;
   dumpItems=raw.split('\n').map(l=>l.trim()).filter(Boolean).map(t=>({text:t,include:true,priority:'medium'}));
   const prev=g('dumpPreview');
-  if(!dumpItems.length){prev.innerHTML='';return}
+  if(!prev){console.error('dumpPreview not found');return}
+  if(!dumpItems.length){prev.innerHTML='<div style="text-align:center;color:var(--text3);padding:16px;font-size:13px">Nothing to parse — type some items above.</div>';return}
   prev.innerHTML=`<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:8px">${dumpItems.length} items captured</div>`+
     dumpItems.map((item,i)=>`<div class="dump-item"><input type="checkbox" checked onchange="dumpItems[${i}].include=this.checked"/><span style="flex:1">${esc(item.text)}</span><select class="dump-select" onchange="dumpItems[${i}].priority=this.value"><option value="high">🔴 High</option><option value="medium" selected>🟡 Med</option><option value="low">🟢 Low</option></select></div>`).join('');
 }
 async function saveDump(){
-  if(!activeListId){alert('Select or create a list first');return}
+  if(!activeListId){alert('Create or select a list first');return}
   const toSave=dumpItems.filter(i=>i.include);
-  if(!toSave.length){alert('No items selected');return}
-  await api('POST','/api/tasks/bulk',{list_id:activeListId,texts:toSave.map(i=>i.text),priority:'medium'});
+  if(!toSave.length){alert('No items selected — check the boxes');return}
+  const r=await api('POST','/api/tasks/bulk',{list_id:activeListId,texts:toSave.map(i=>i.text),priority:'medium'});
+  if(r.error){alert(r.error);return}
   g('dumpTxt').value='';g('dumpPreview').innerHTML='';dumpItems=[];
   await fetchTasks();renderAll();
 }
