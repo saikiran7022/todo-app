@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const db = require('../db');
 const { requireAuth } = require('../middleware/auth');
+const { parseNLP } = require('../nlp');
 
 function isMember(listId, userId) {
   return !!db.prepare('SELECT 1 FROM list_members WHERE list_id=? AND user_id=?').get(listId, userId);
@@ -183,6 +184,41 @@ router.post('/:id/stake', requireAuth, (req, res) => {
   if (!type || !value) return res.status(400).json({ error: 'type and value required' });
   const r = db.prepare('INSERT INTO stakes (task_id,type,value,claimant_id) VALUES (?,?,?,?)').run(task.id, type, value, req.user.id);
   res.status(201).json(db.prepare('SELECT * FROM stakes WHERE id=?').get(r.lastInsertRowid));
+});
+
+// POST natural language parse
+router.post('/parse', requireAuth, (req, res) => {
+  const { text } = req.body;
+  if (!text || !text.trim()) return res.status(400).json({ error: 'text required' });
+  res.json(parseNLP(text.trim()));
+});
+
+// POST forgiveness mode — bulk reschedule active tasks
+router.post('/forgive', requireAuth, (req, res) => {
+  const { list_id, due_at, priority } = req.body;
+  if (!list_id || !due_at) return res.status(400).json({ error: 'list_id and due_at required' });
+  if (!isMember(list_id, req.user.id)) return res.status(403).json({ error: 'Not a member' });
+  const tasks = db.prepare("SELECT id FROM tasks WHERE list_id=? AND status!='done'").all(list_id);
+  tasks.forEach(t => {
+    db.prepare("UPDATE tasks SET due_at=?, priority=COALESCE(?,priority), updated_at=datetime('now') WHERE id=?").run(due_at, priority||null, t.id);
+  });
+  res.json({ rescheduled: tasks.length });
+});
+
+// POST closing time ritual
+router.post('/closing-time', requireAuth, (req, res) => {
+  const { landed, rollover, drop } = req.body;
+  if (!landed && !rollover && !drop) return res.status(400).json({ error: 'At least one answer required' });
+  const r = db.prepare(
+    "INSERT INTO closing_times (user_id,landed,rollover,drop_list,created_at) VALUES (?,?,?,?,datetime('now'))"
+  ).run(req.user.id, landed||'', rollover||'', JSON.stringify(drop||[]));
+  res.status(201).json({ id: r.lastInsertRowid });
+});
+
+// GET closing time history
+router.get('/closing-time', requireAuth, (req, res) => {
+  const entries = db.prepare("SELECT * FROM closing_times WHERE user_id=? ORDER BY created_at DESC LIMIT 30").all(req.user.id);
+  res.json(entries.map(e => ({ ...e, drop_list: JSON.parse(e.drop_list||'[]') })));
 });
 
 module.exports = router;

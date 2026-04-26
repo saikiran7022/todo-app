@@ -150,6 +150,14 @@ const SCHEMA = `
     claimant_id INTEGER,
     created_at TEXT DEFAULT (datetime('now'))
   );
+  CREATE TABLE IF NOT EXISTS closing_times (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    landed TEXT DEFAULT '',
+    rollover TEXT DEFAULT '',
+    drop_list TEXT DEFAULT '[]',
+    created_at TEXT DEFAULT (datetime('now'))
+  );
 `;
 
 _ready = (async () => {

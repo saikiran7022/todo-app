@@ -293,38 +293,6 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .hf-who { font-weight: 600; margin-right: 4px; }
 .hf-note { color: var(--text2); margin-top: 2px; }
 .hf-time { font-size: 11px; color: var(--text3); margin-top: 2px; }
-
-/* ══ STAKES ═══════════════════════════════════════════ */
-.stake-types { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-.stake-type { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--r-sm); padding: 14px; text-align: center; cursor: pointer; transition: all .2s; }
-.stake-type:hover, .stake-type.selected { border-color: var(--accent); background: var(--accent-l); }
-.stake-type .si { font-size: 24px; margin-bottom: 4px; }
-.stake-type .sn { font-size: 13px; font-weight: 600; }
-@keyframes coin-flip { 0% { transform: rotateY(0); } 100% { transform: rotateY(720deg); } }
-.coin-anim { display: inline-block; animation: coin-flip .8s ease-in-out; }
-.pair-badge { background: var(--accent-l); color: var(--accent); font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: 600; }
-.verify-badge { background: #fef9c3; color: #854d0e; font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: 600; }
-[data-theme=dark] .verify-badge { background: #422006; color: #fde68a; }
-.share-link { display: flex; gap: 8px; align-items: center; background: var(--surface2); padding: 10px 12px; border-radius: var(--r-xs); margin-top: 12px; }
-.share-link input { flex: 1; background: transparent; border: none; font-size: 12px; color: var(--text2); outline: none; font-family: var(--font); }
-.share-link button { background: var(--accent); color: #fff; border: none; border-radius: 4px; padding: 4px 10px; font-size: 12px; cursor: pointer; font-family: var(--font); }
-.forgive-summary { text-align: center; margin-bottom: 16px; }
-.forgive-summary .count { font-size: 32px; font-weight: 700; color: var(--accent); }
-.forgive-summary .label { font-size: 13px; color: var(--text2); }
-.forgive-tasks { max-height: 180px; overflow-y: auto; margin-bottom: 16px; }
-.forgive-task { display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: var(--surface2); border-radius: 6px; margin-bottom: 4px; font-size: 13px; }
-.forgive-task .ft-check { accent-color: var(--accent); }
-.date-input { padding: 6px 10px; border: 1px solid var(--border); border-radius: 20px; font-size: 12px; background: var(--bg); color: var(--text); font-family: var(--font); }
-.ct-sim { margin-top: 16px; display: flex; gap: 8px; align-items: center; justify-content: center; }
-.ct-sim-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
-.ct-sim-dot.ready { animation: pulse-ring 1.5s ease-out infinite; }
-.ct-hist { margin-top: 24px; width: 100%; max-width: 480px; }
-.ct-hist h4 { font-size: 12px; color: #78716c; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
-.ct-hist-item { padding: 10px 14px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06); border-radius: 8px; margin-bottom: 6px; font-size: 13px; }
-.ct-hist-date { font-size: 11px; color: #57534e; }
-.ct-hist-text { margin-top: 4px; color: #a8a29e; line-height: 1.5; }
-.stake-claim-row { display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: var(--surface2); border-radius: 6px; font-size: 12px; }
-@media(max-width:720px){ .sidebar{width:280px} .content{padding:16px} .topbar{padding:12px 16px} .add-row{flex-direction:column} .add-opts{overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px} .matrix{grid-template-columns:1fr} .quadrant{min-height:100px} .today-hero{padding:16px} .today-sentence{font-size:16px} .task-card{padding:10px 11px} .task-actions{opacity:1} }
 </style>
 </head>
 <body>
@@ -400,10 +368,9 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
     <div class="ceremony-step" id="cStep3">
       <div class="ceremony-emoji">📬</div>
       <h2 class="ceremony-title">Name your first list</h2>
-      <p class="ceremony-sub">Invite your partner now, or do it later.</p>
+      <p class="ceremony-sub">You can invite your partner after setup.</p>
       <div style="width:100%;max-width:320px">
         <div class="field"><label>List name</label><input id="cListName" type="text" placeholder="Home, Together, Sprint…"/></div>
-        <div class="field"><label>Invite partner (username, optional)</label><input id="cPartner" type="text" placeholder="their username"/></div>
       </div>
       <button class="btn btn-primary" style="max-width:260px" onclick="finishCeremony()">Start →</button>
       <div class="auth-err" id="ceremonyErr"></div>
@@ -454,8 +421,6 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
       <div class="topbar">
         <span class="topbar-title" id="topbarTitle">Today</span>
         <div class="topbar-right">
-          <button class="icon-btn" onclick="showSheet('invite')" title="Invite">✉️</button>
-          <button class="icon-btn" onclick="openForgiveness()" title="Forgiveness mode">🕊️</button>
           <button class="icon-btn" onclick="openClosingTime()" title="Closing time ritual">🌙</button>
           <button class="icon-btn" onclick="fetchAll()" title="Refresh">↺</button>
         </div>
@@ -480,8 +445,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
               <button onclick="addTask()">Add</button>
             </div>
             <div class="add-opts">
-              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="tPair" style="accent-color:var(--accent)"/>🤝 Pair</label>
-              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="tVerify" style="accent-color:var(--accent)"/>✅ Verify</label><option value="high">🔴 High</option><option value="medium" selected>🟡 Medium</option><option value="low">🟢 Low</option></select>
+              <select id="tPri"><option value="high">🔴 High</option><option value="medium" selected>🟡 Medium</option><option value="low">🟢 Low</option></select>
               <select id="tColor"><option value="default">⚪ No colour</option><option value="red">🔴 Red</option><option value="orange">🟠 Orange</option><option value="green">🟢 Green</option><option value="blue">🔵 Blue</option><option value="purple">🟣 Purple</option></select>
               <select id="tQuad"><option value="">📍 Quadrant</option><option value="ui">🔴 Urgent+Imp</option><option value="udi">🔵 Important</option><option value="uni">🟡 Urgent</option><option value="udni">🟢 Later</option></select>
               <input style="width:120px;padding:6px 10px;border:1px solid var(--border);border-radius:20px;font-size:12px;background:var(--bg);color:var(--text)" id="tTags" type="text" placeholder="tags, csv"/>
@@ -572,54 +536,14 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 <div id="undoBar"><span id="undoMsg">Task deleted</span><button onclick="doUndo()">Undo</button></div>
 
 <!-- ══ QUICK CAPTURE ════════════════════════════════════ -->
-
-<!-- ══ STAKE SHEET ═══════════════════════════════════ -->
-<div id="stakeOverlay" class="overlay" style="display:none" onclick="closeSheet('stakeOverlay',event)">
-  <div class="sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title" id="stakeTitle">Add a stake</div>
-    <div class="sheet-sub">What happens if this task isn't completed?</div>
-    <div class="stake-types" id="stakeTypePicker">
-      <div class="stake-type selected" data-type="money" onclick="pickStakeType(this)"><div class="si">💰</div><div class="sn">Money</div></div>
-      <div class="stake-type" data-type="chore" onclick="pickStakeType(this)"><div class="si">🧹</div><div class="sn">Chore</div></div>
-      <div class="stake-type" data-type="dare" onclick="pickStakeType(this)"><div class="si">🎭</div><div class="sn">Dare</div></div>
-    </div>
-    <div class="field"><label>Stake value</label><input id="stakeVal" type="text" placeholder="$10 / dishes / dance in public"/></div>
-    <button class="propose-btn" onclick="saveStake()">Lock it in 🔒</button>
-    <div class="auth-err" id="stakeErr"></div>
-  </div>
-</div>
-
-<!-- ══ FORGIVENESS SHEET ═══════════════════════════════ -->
-<div id="forgivenessOverlay" class="overlay" style="display:none" onclick="closeSheet('forgivenessOverlay',event)">
-  <div class="sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title" style="font-family:var(--serif);font-size:20px">Forgiveness mode 🕊️</div>
-    <div class="sheet-sub">Bulk reschedule without shame. Pick a new date for everything.</div>
-    <div class="forgive-summary"><div class="count" id="forgiveCount">0</div><div class="label">tasks will be rescheduled</div></div>
-    <div class="forgive-tasks" id="forgiveTasks"></div>
-    <div class="field"><label>New due date</label><input id="forgiveDate" type="date" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:var(--r-xs);background:var(--bg);color:var(--text);font-family:var(--font)"/></div>
-    <div class="field"><label>Priority override (optional)</label>
-      <select id="forgivePri" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:var(--r-xs);background:var(--bg);color:var(--text);font-family:var(--font)">
-        <option value="">Keep current</option><option value="high">🔴 High</option><option value="medium">🟡 Medium</option><option value="low">🟢 Low</option>
-      </select>
-    </div>
-    <button class="propose-btn" onclick="doForgive()">Reschedule all 🕊️</button>
-  </div>
-</div>
-
-<!-- ══ NLP QUICK CAPTURE ENHANCEMENT ═══════════════════ -->
-
 <div id="quickCapture" onclick="closeQC(event)">
   <div class="qc-box">
     <div style="font-family:var(--serif);font-size:16px;font-weight:400;margin-bottom:12px">Quick capture</div>
-    <input class="qc-input" id="qcInput" type="text" placeholder="Write a task naturally…"/>
+    <input class="qc-input" id="qcInput" type="text" placeholder="What's on your mind?"/>
     <div class="qc-row">
-      <span class="qc-hint" id="qcHint">Enter to save · Esc to close</span>
+      <span class="qc-hint">Enter to save · Esc to close</span>
       <button class="btn btn-primary btn-sm" onclick="saveQC()">Save</button>
-      <button class="btn btn-ghost btn-sm" onclick="parseQC()" style="padding:8px 12px">🧠 Parse</button>
     </div>
-    <div id="qcPreview" style="display:none;margin-top:10px;padding:10px;background:var(--surface2);border-radius:var(--r-xs);font-size:12px;color:var(--text2)"></div>
   </div>
 </div>
 
@@ -671,7 +595,16 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
   </div>
 </div>
 
-
+<!-- ══ INVITE SHEET ══════════════════════════════════════ -->
+<div id="inviteOverlay" class="overlay" style="display:none" onclick="closeSheet('inviteOverlay',event)">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Invite to list</div>
+    <div class="field"><label>Username</label><input id="inviteUser" type="text" placeholder="their username"/></div>
+    <button class="btn btn-primary" onclick="doInvite()">Send invite →</button>
+    <div class="auth-err" id="inviteErr"></div>
+  </div>
+</div>
 
 <!-- ══ CLOSING TIME ══════════════════════════════════════ -->
 <div id="closingTime" style="display:none;flex-direction:column;align-items:center">
@@ -684,9 +617,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
   <textarea class="ct-answer" id="ctQ2" placeholder="Incomplete work that moves to tomorrow…"></textarea>
   <div class="ct-prompt">What can we drop?</div>
   <textarea class="ct-answer" id="ctQ3" placeholder="Tasks that no longer matter…"></textarea>
-  <div class="ct-sim" id="ctSim"><span style="font-size:12px;color:#78716c">Waiting for partner to finish…</span></div>
-    <button class="ct-close" onclick="closeClosingTime()">Close the day ✦</button>
-    <div class="ct-hist" id="ctHist" style="display:none"><h4>Previous closings</h4><div id="ctHistList"></div></div>
+  <button class="ct-close" onclick="closeClosingTime()">Close the day ✦</button>
 </div>
 
 <script>
@@ -731,13 +662,12 @@ document.querySelectorAll('.accent-swatch').forEach(s=>{
 });
 async function finishCeremony(){
   const name=g('cListName').value.trim()||'Our list';
-  const partner=g('cPartner')?.value.trim();
   err('ceremonyErr','');
+  // Update accent color on profile
   await api('PATCH','/api/auth/me',{accent_color:cAccent});
   const r=await api('POST','/api/lists',{name,mode:cMode});
   if(r.error){err('ceremonyErr',r.error);return}
   activeListId=r.id;
-  if(partner){await api('POST',`/api/lists/${r.id}/invite`,{username:partner})}
   g('ceremony').style.display='none';
   localStorage.setItem('ceremonyDone','1');
   await fetchAll();
@@ -921,8 +851,8 @@ async function addTask(){
   const title=g('tText').value.trim();if(!title||!activeListId)return;
   const tags=g('tTags').value.split(',').map(t=>t.trim()).filter(Boolean);
   const owner_id=parseInt(g('tOwner').value)||me.id;
-  const r=await api('POST','/api/tasks',{list_id:activeListId,title,priority:g('tPri').value,color:g('tColor').value,quadrant:g('tQuad').value||null,tags,owner_id,requires_pair:g('tPair').checked,verify_required:g('tVerify').checked});
-  g('tText').value='';g('tTags').value='';g('tPair').checked=false;g('tVerify').checked=false;
+  const r=await api('POST','/api/tasks',{list_id:activeListId,title,priority:g('tPri').value,color:g('tColor').value,quadrant:g('tQuad').value||null,tags,owner_id});
+  g('tText').value='';g('tTags').value='';
   if(!r.error){tasks=[r,...tasks];renderAll();wsEmit('task_created',{data:r});}else{await fetchTasks();renderAll()}
 }
 async function addKanban(){
@@ -1011,11 +941,8 @@ function cardHTML(t){
   const done=t.status==='done';
   const editing=presenceUsers.find(u=>u.editingTaskId===t.id&&u.userId!==me?.id);
   const tags=(t.tags||[]).map(tg=>`<span class="badge badge-tag">${esc(tg)}</span>`).join('');
-  const stk=(t.stakes||[]).map(s=>`<span class="badge badge-stake"><span class="coin-anim">💰</span> ${esc(s.type)}: ${esc(s.value)}</span>`).join('');
+  const stk=(t.stakes||[]).length?`<span class="badge badge-stake">💰 ${t.stakes.length} stake</span>`:'';
   const hf=(t.handoffs||[]).length?`<span class="badge badge-muted">🤝 ${t.handoffs.length}</span>`:'';
-  const pair=t.requires_pair?`<span class="pair-badge">👥 Pair</span>`:'';
-  const verify=t.verify_required?`<span class="verify-badge">✅ Verify</span>`:'';
-  const pairChecks=t.requires_pair?buildPairChecks(t):'';
   const ng=(t.negotiations||[]).length?`<span class="badge badge-muted">💬 ${t.negotiations.length}</span>`:'';
   const due=t.due_at?`<span class="due-lbl ${new Date(t.due_at)<new Date()?'overdue':''}">📅 ${new Date(t.due_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>`:'';
   return `<div class="task-card ${done?'done':''} color-${t.color||'default'}" id="tc-${t.id}">
@@ -1029,14 +956,11 @@ function cardHTML(t){
         <div class="task-meta">
           <span class="badge bp-${t.priority}">${t.priority}</span>
           ${t.quadrant?`<span class="badge badge-muted">${QMAP[t.quadrant]||t.quadrant}</span>`:''}
-          ${due}${tags}${stk}${hf}${ng}${pair}${verify}
-        </div>
-        ${pairChecks}
+          ${due}${tags}${stk}${hf}${ng}
         </div>
       </div>
       <div class="task-actions">
         <button class="icon-btn" onclick="openNego(${t.id})" title="Negotiate">↔</button>
-        <button class="icon-btn" onclick="openStake(${t.id})" title="Add stake">💰</button>
         <button class="icon-btn" onclick="openHandoff(${t.id})" title="Hand off">🤝</button>
         <button class="icon-btn" onclick="pinGoal(${t.id},${!t.is_top_goal})" title="Pin">${t.is_top_goal?'⭐':'☆'}</button>
         <button class="icon-btn" style="color:var(--red)" onclick="deleteTask(${t.id})">✕</button>
@@ -1253,157 +1177,7 @@ document.addEventListener('keydown',e=>{
 // Long-press on canvas
 document.addEventListener('contextmenu',e=>{if(e.target.closest('.content')){e.preventDefault();openQuickCapture()}});
 
-
-// ══ STAKES ═════════════════════════════════════════════
-let stakeTaskId = null, stakeType = 'money';
-function openStake(tid) {
-  stakeTaskId = tid;
-  const t = tasks.find(x => x.id === tid);
-  g('stakeTitle').textContent = t ? `Stake on "${t.title}"` : ' ';
-  g('stakeVal').value = ''; err('stakeErr', '');
-  g('stakeOverlay').style.display = 'flex';
-}
-function pickStakeType(el) {
-  document.querySelectorAll('.stake-type').forEach(x => x.classList.remove('selected'));
-  el.classList.add('selected');
-  stakeType = el.dataset.type;
-}
-async function saveStake() {
-  const value = g('stakeVal').value.trim();
-  err('stakeErr', '');
-  if (!value) { err('stakeErr', 'Enter a stake value'); return; }
-  const r = await api('POST', `/api/tasks/${stakeTaskId}/stake`, { type: stakeType, value });
-  if (r.error) { err('stakeErr', r.error); return; }
-  g('stakeOverlay').style.display = 'none';
-  await fetchTasks(); renderAll();
-}
-
-// ══ PAIR CHECKS ═══════════════════════════════════════
-function buildPairChecks(t) {
-  if (!t.requires_pair) return '';
-  const allChecked = (t.pair_checked_by || []).length === listMembers.length;
-  const checks = listMembers.map(m => {
-    const done = (t.pair_checked_by || []).includes(m.id);
-    return `<span class="pair-check ${done ? 'done' : ''}">${done ? '✅' : '⬜'} ${esc(m.username)}</span>`;
-  }).join('');
-  return `<div class="pair-checks">${checks}</div>`;
-}
-
-// ══ NLP QUICK CAPTURE ═════════════════════════════════
-async function parseQC() {
-  const text = g('qcInput').value.trim();
-  if (!text) return;
-  const preview = g('qcPreview');
-  preview.style.display = 'block';
-  preview.innerHTML = '<span style="opacity:.5">Parsing…</span>';
-  const r = await api('POST', '/api/tasks/parse', { text });
-  let html = '';
-  if (r.title) html += `<strong>Title:</strong> ${esc(r.title)}<br/>`;
-  if (r.priority !== 'medium') html += `<strong>Priority:</strong> ${r.priority}<br/>`;
-  if (r.due_at) html += `<strong>Due:</strong> ${r.due_at}<br/>`;
-  if (r.recurrence) html += `<strong>Recurrence:</strong> ${r.recurrence}<br/>`;
-  if (r.owner_hint) html += `<strong>Owner:</strong> @${esc(r.owner_hint)}<br/>`;
-  if (r.tags?.length) html += `<strong>Tags:</strong> ${r.tags.map(t => `#${esc(t)}`).join(' ')}<br/>`;
-  preview.innerHTML = html || 'No structured data detected — saving as plain text.';
-  // Store parsed result for saveQC
-  g('qcInput').dataset.parsed = JSON.stringify(r);
-}
-
-async function saveQC() {
-  if (!activeListId) { alert('Select or create a list first'); return; }
-  let title = g('qcInput').value.trim();
-  if (!title) return;
-  let parsed;
-  try { parsed = JSON.parse(g('qcInput').dataset.parsed); } catch {}
-  const body = { list_id: activeListId, title: parsed?.title || title, priority: parsed?.priority || 'medium', due_at: parsed?.due_at || null, recurrence: parsed?.recurrence || null, tags: parsed?.tags || [] };
-  await api('POST', '/api/tasks', body);
-  g('qcInput').value = '';
-  g('qcInput').dataset.parsed = '';
-  g('qcPreview').style.display = 'none';
-  g('quickCapture').style.display = 'none';
-  await fetchTasks(); renderAll();
-}
-
-// ══ FORGIVENESS MODE ═════════════════════════════════
-function openForgiveness() {
-  const active = tasks.filter(t => t.status !== 'done');
-  if (!active.length) { alert('No active tasks to reschedule'); return; }
-  g('forgiveCount').textContent = active.length;
-  g('forgiveTasks').innerHTML = active.slice(0, 20).map(t =>
-    `<div class="forgive-task"><input type="checkbox" class="ft-check" checked data-id="${t.id}"/><span style="flex:1">${esc(t.title)}</span></div>`
-  ).join('') + (active.length > 20 ? `<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px">…and ${active.length - 20} more</div>` : '');
-  g('forgivenessOverlay').style.display = 'flex';
-}
-async function doForgive() {
-  const date = g('forgiveDate').value;
-  if (!date) { alert('Pick a new due date'); return; }
-  const pri = g('forgivePri').value || null;
-  const checked = [...document.querySelectorAll('.forgive-task .ft-check')].filter(c => c.checked).map(c => parseInt(c.dataset.id));
-  await Promise.all(checked.map(id => api('PATCH', `/api/tasks/${id}`, { due_at: date, ...(pri ? { priority: pri } : {}) })));
-  g('forgivenessOverlay').style.display = 'none';
-  await fetchTasks(); renderAll();
-}
-
-// ══ CLOSING TIME ENHANCEMENTS ════════════════════════
-async function closeClosingTime() {
-  const landed = g('ctQ1').value.trim();
-  const rollover = g('ctQ2').value.trim();
-  const drop = g('ctQ3').value.trim();
-  if (landed || rollover || drop) {
-    await api('POST', '/api/tasks/closing-time', { landed, rollover, drop_list: drop.split('\n').filter(Boolean) });
-    // Also auto-reschedule rollover tasks
-    g('ctQ2').value = ''; g('ctQ3').value = ''; g('ctQ1').value = '';
-  }
-  // Show history
-  const hist = await api('GET', '/api/tasks/closing-time');
-  if (Array.isArray(hist) && hist.length) {
-    const histDiv = g('ctHist');
-    histDiv.style.display = 'block';
-    g('ctHistList').innerHTML = hist.slice(0, 10).map(h =>
-      `<div class="ct-hist-item"><div class="ct-hist-date">${new Date(h.created_at).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</div>
-        ${h.landed ? `<div class="ct-hist-text"><strong>Landed:</strong> ${esc(h.landed)}</div>` : ''}
-        ${h.rollover ? `<div class="ct-hist-text"><strong>Rollover:</strong> ${esc(h.rollover)}</div>` : ''}
-        ${h.drop_list?.length ? `<div class="ct-hist-text"><strong>Dropped:</strong> ${h.drop_list.join(', ')}</div>` : ''}
-      </div>`
-    ).join('');
-  }
-  g('closingTime').style.display = 'none';
-}
-
-// ══ PARTNER INVITE ════════════════════════════════════
-async function doInvite() {
-  err('inviteErr', '');
-  const username = g('inviteUser').value.trim();
-  if (!username) { err('inviteErr', 'Enter a username'); return; }
-  const r = await api('POST', `/api/lists/${activeListId}/invite`, { username });
-  if (r.error) { err('inviteErr', r.error); return; }
-  g('inviteOverlay').style.display = 'none';
-  g('inviteUser').value = '';
-  await fetchTasks(); renderPresence();
-  // Show share link
-  showUndo(`"${username}" added to the list`, null);
-}
-
-// ══ COPY SHARE LINK ═══════════════════════════════════
-function copyShareLink() {
-  const url = `${location.origin}/join/${activeListId}`;
-  navigator.clipboard?.writeText(url).then(() => showUndo('Share link copied!', null));
-}
-
-// ══ LONG PRESS GLOBAL ═════════════════════════════════
-document.addEventListener('contextmenu', e => {
-  if (e.target.closest('.content') && !e.target.closest('.task-card') && !e.target.closest('.kanban')) {
-    e.preventDefault(); openQuickCapture();
-  }
-});
-
-// ══ PWA SERVICE WORKER REGISTRATION ══════════════════
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker?.register('/sw.js').catch(() => {});
-}
-
 checkSession();
-
 </script>
 </body>
 </html>
