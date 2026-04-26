@@ -1,519 +1,648 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Todo App</title>
-  <style>
-    :root {
-      --bg: #f0f2f5;
-      --card: #ffffff;
-      --text: #1a1a2e;
-      --subtext: #666;
-      --input-border: #e0e0e0;
-      --input-focus: #6c63ff;
-      --item-bg: #f8f9fa;
-      --item-hover: #f0eeff;
-      --shadow: rgba(0,0,0,0.1);
-      --btn-primary: #6c63ff;
-      --btn-primary-hover: #574fd6;
-      --danger: #e53935;
-      --muted: #aaa;
-      --toggle-bg: #e0e0e0;
-      --toggle-knob: #fff;
-    }
-    [data-theme="dark"] {
-      --bg: #0f0f1a;
-      --card: #1a1a2e;
-      --text: #e8e8f0;
-      --subtext: #9090a8;
-      --input-border: #2e2e4a;
-      --input-focus: #8b7fff;
-      --item-bg: #16162a;
-      --item-hover: #23234a;
-      --shadow: rgba(0,0,0,0.4);
-      --btn-primary: #7c73ff;
-      --btn-primary-hover: #6c63ff;
-      --danger: #ff5252;
-      --muted: #555575;
-      --toggle-bg: #7c73ff;
-      --toggle-knob: #fff;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      padding: 40px 16px;
-      transition: background 0.3s, color 0.3s;
-    }
-    .container {
-      background: var(--card);
-      border-radius: 16px;
-      box-shadow: 0 4px 24px var(--shadow);
-      width: 100%;
-      max-width: 520px;
-      padding: 32px;
-      height: fit-content;
-      transition: background 0.3s, box-shadow 0.3s;
-    }
-
-    /* ── Login ── */
-    #loginView { display: block; }
-    #appView { display: none; }
-
-    .login-header {
-      text-align: center;
-      margin-bottom: 28px;
-    }
-    .login-header h1 { font-size: 26px; margin-bottom: 6px; }
-    .login-header p { color: var(--subtext); font-size: 14px; }
-
-    .form-group { margin-bottom: 16px; }
-    .form-group label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 6px;
-      color: var(--subtext);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .form-group input {
-      width: 100%;
-      padding: 12px 16px;
-      border: 2px solid var(--input-border);
-      border-radius: 8px;
-      font-size: 15px;
-      background: var(--bg);
-      color: var(--text);
-      outline: none;
-      transition: border 0.2s, background 0.3s;
-    }
-    .form-group input:focus { border-color: var(--input-focus); }
-
-    .btn-full {
-      width: 100%;
-      padding: 13px;
-      background: var(--btn-primary);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-      margin-top: 4px;
-    }
-    .btn-full:hover { background: var(--btn-primary-hover); }
-
-    .login-error {
-      color: var(--danger);
-      font-size: 13px;
-      text-align: center;
-      margin-top: 12px;
-      min-height: 18px;
-    }
-
-    /* ── App Header ── */
-    .app-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 24px;
-    }
-    .app-header h1 { font-size: 24px; }
-    .app-header h1 span { color: var(--btn-primary); }
-
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .username-badge {
-      font-size: 13px;
-      color: var(--subtext);
-    }
-    .logout-btn {
-      background: none;
-      border: 1px solid var(--input-border);
-      color: var(--subtext);
-      padding: 5px 10px;
-      border-radius: 6px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .logout-btn:hover { border-color: var(--danger); color: var(--danger); }
-
-    /* ── Dark mode toggle ── */
-    .theme-toggle {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      user-select: none;
-    }
-    .theme-toggle .icon { font-size: 14px; }
-    .toggle-track {
-      width: 36px;
-      height: 20px;
-      background: var(--toggle-bg);
-      border-radius: 20px;
-      position: relative;
-      transition: background 0.3s;
-    }
-    .toggle-knob {
-      width: 14px;
-      height: 14px;
-      background: var(--toggle-knob);
-      border-radius: 50%;
-      position: absolute;
-      top: 3px;
-      left: 3px;
-      transition: transform 0.3s;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-    }
-    [data-theme="dark"] .toggle-knob { transform: translateX(16px); }
-
-    /* ── Todo input ── */
-    .input-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 20px;
-    }
-    .input-row input {
-      flex: 1;
-      padding: 12px 16px;
-      border: 2px solid var(--input-border);
-      border-radius: 8px;
-      font-size: 15px;
-      background: var(--bg);
-      color: var(--text);
-      outline: none;
-      transition: border 0.2s, background 0.3s;
-    }
-    .input-row input:focus { border-color: var(--input-focus); }
-    .input-row button {
-      padding: 12px 20px;
-      background: var(--btn-primary);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 15px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .input-row button:hover { background: var(--btn-primary-hover); }
-
-    /* ── Filters ── */
-    .filters {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-    .filters button {
-      flex: 1;
-      padding: 8px;
-      border: 2px solid var(--input-border);
-      background: var(--card);
-      color: var(--text);
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 13px;
-      transition: all 0.2s;
-    }
-    .filters button.active {
-      border-color: var(--btn-primary);
-      background: var(--btn-primary);
-      color: #fff;
-    }
-
-    /* ── Todo list ── */
-    .todo-list { list-style: none; }
-    .todo-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 12px;
-      border-radius: 8px;
-      margin-bottom: 8px;
-      background: var(--item-bg);
-      transition: background 0.2s;
-    }
-    .todo-item:hover { background: var(--item-hover); }
-    .todo-item.completed .todo-text {
-      text-decoration: line-through;
-      color: var(--muted);
-    }
-    .todo-item input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      accent-color: var(--btn-primary);
-      cursor: pointer;
-    }
-    .todo-text { flex: 1; font-size: 15px; }
-    .delete-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: var(--muted);
-      font-size: 18px;
-      line-height: 1;
-      transition: color 0.2s;
-    }
-    .delete-btn:hover { color: var(--danger); }
-
-    .empty {
-      text-align: center;
-      color: var(--muted);
-      padding: 32px 0;
-      font-size: 15px;
-    }
-    .footer {
-      margin-top: 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 13px;
-      color: var(--subtext);
-    }
-    .clear-btn {
-      background: none;
-      border: none;
-      color: var(--danger);
-      cursor: pointer;
-      font-size: 13px;
-      opacity: 0.7;
-      transition: opacity 0.2s;
-    }
-    .clear-btn:hover { opacity: 1; text-decoration: underline; }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Todo App</title>
+<style>
+:root{--bg:#f0f2f5;--card:#fff;--text:#1a1a2e;--sub:#666;--border:#e0e0e0;--item:#f8f9fa;--item-h:#f0eeff;--shadow:rgba(0,0,0,.10);--accent:#6c63ff;--accent-h:#574fd6;--danger:#e53935;--muted:#aaa;--tag-bg:#ede9ff;--tag-text:#6c63ff}
+[data-theme=dark]{--bg:#0f0f1a;--card:#1a1a2e;--text:#e8e8f0;--sub:#9090a8;--border:#2e2e4a;--item:#16162a;--item-h:#23234a;--shadow:rgba(0,0,0,.4);--accent:#7c73ff;--accent-h:#6c63ff;--danger:#ff5252;--muted:#555575;--tag-bg:#1e1b40;--tag-text:#9b93ff}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s}
+/* ── Auth ── */
+.auth-wrap{display:flex;justify-content:center;padding:60px 16px}
+.auth-card{background:var(--card);border-radius:16px;box-shadow:0 4px 24px var(--shadow);width:100%;max-width:420px;padding:36px;transition:background .3s}
+.auth-tabs{display:flex;gap:0;margin-bottom:28px;border-radius:10px;overflow:hidden;border:2px solid var(--border)}
+.auth-tab{flex:1;padding:10px;background:transparent;color:var(--sub);border:none;cursor:pointer;font-size:14px;font-weight:600;transition:all .2s}
+.auth-tab.active{background:var(--accent);color:#fff}
+.auth-logo{text-align:center;font-size:28px;font-weight:700;margin-bottom:4px}
+.auth-logo span{color:var(--accent)}
+.auth-sub{text-align:center;color:var(--sub);font-size:13px;margin-bottom:24px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--sub);margin-bottom:5px}
+.field input{width:100%;padding:11px 14px;border:2px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);outline:none;transition:border .2s,background .3s}
+.field input:focus{border-color:var(--accent)}
+.btn-primary{width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:background .2s;margin-top:4px}
+.btn-primary:hover{background:var(--accent-h)}
+.auth-err{color:var(--danger);font-size:13px;text-align:center;margin-top:10px;min-height:16px}
+/* ── App Layout ── */
+#app{display:none}
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;gap:12px;height:56px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px var(--shadow);transition:background .3s}
+.topbar-logo{font-weight:700;font-size:18px;color:var(--accent);margin-right:8px}
+.nav-tabs{display:flex;gap:4px;flex:1}
+.nav-tab{padding:7px 14px;border:none;background:transparent;color:var(--sub);border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;white-space:nowrap}
+.nav-tab.active,.nav-tab:hover{background:var(--item-h);color:var(--accent)}
+.topbar-right{display:flex;align-items:center;gap:10px;margin-left:auto}
+.user-chip{font-size:12px;color:var(--sub);background:var(--item);padding:4px 10px;border-radius:20px}
+.theme-btn{background:none;border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:8px;cursor:pointer;font-size:14px}
+.logout-btn{background:none;border:1px solid var(--border);color:var(--sub);padding:5px 10px;border-radius:6px;font-size:12px;cursor:pointer;transition:all .2s}
+.logout-btn:hover{border-color:var(--danger);color:var(--danger)}
+/* ── Views ── */
+.view{display:none;padding:24px;max-width:900px;margin:0 auto}
+.view.active{display:block}
+.view-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.view-title{font-size:20px;font-weight:700}
+/* ── Add Todo Bar ── */
+.add-bar{background:var(--card);border-radius:12px;padding:16px;margin-bottom:20px;box-shadow:0 2px 8px var(--shadow)}
+.add-row{display:flex;gap:8px;margin-bottom:10px}
+.add-row input{flex:1;padding:10px 14px;border:2px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);outline:none;transition:border .2s,background .3s}
+.add-row input:focus{border-color:var(--accent)}
+.add-row button{padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;transition:background .2s}
+.add-row button:hover{background:var(--accent-h)}
+.add-meta{display:flex;gap:8px;flex-wrap:wrap}
+.add-meta select,.add-meta input{padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--bg);color:var(--text);cursor:pointer}
+/* ── Todo Items ── */
+.todo-item{background:var(--card);border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px;box-shadow:0 1px 4px var(--shadow);border-left:4px solid transparent;transition:all .2s}
+.todo-item:hover{background:var(--item-h)}
+.todo-item.completed .todo-text{text-decoration:line-through;color:var(--muted)}
+.todo-item input[type=checkbox]{margin-top:3px;width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0}
+.todo-body{flex:1;min-width:0}
+.todo-text{font-size:14px;margin-bottom:4px;word-break:break-word}
+.todo-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tag{display:inline-block;padding:2px 8px;background:var(--tag-bg);color:var(--tag-text);border-radius:20px;font-size:11px;font-weight:600}
+.priority-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700}
+.p-high{background:#ffe5e5;color:#c62828}
+.p-medium{background:#fff3e0;color:#e65100}
+.p-low{background:#e8f5e9;color:#2e7d32}
+[data-theme=dark] .p-high{background:#3a1010;color:#ff7070}
+[data-theme=dark] .p-medium{background:#3a2800;color:#ffb347}
+[data-theme=dark] .p-low{background:#0d2e12;color:#66bb6a}
+.todo-actions{display:flex;gap:4px;margin-left:auto;flex-shrink:0}
+.icon-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:3px 5px;border-radius:4px;transition:color .2s}
+.icon-btn:hover{color:var(--danger)}
+/* color border */
+.color-red{border-left-color:#e53935}
+.color-orange{border-left-color:#ff9800}
+.color-green{border-left-color:#43a047}
+.color-blue{border-left-color:#1e88e5}
+.color-purple{border-left-color:#8e24aa}
+.color-default{border-left-color:var(--border)}
+/* ── Filters ── */
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.filter-btn{padding:6px 12px;border:1px solid var(--border);background:var(--card);color:var(--sub);border-radius:20px;cursor:pointer;font-size:12px;transition:all .2s}
+.filter-btn.active{border-color:var(--accent);background:var(--accent);color:#fff}
+.sort-select{padding:6px 10px;border:1px solid var(--border);border-radius:20px;font-size:12px;background:var(--bg);color:var(--text);cursor:pointer;margin-left:auto}
+.footer-bar{display:flex;justify-content:space-between;font-size:12px;color:var(--sub);padding:8px 2px}
+.clear-btn{background:none;border:none;color:var(--danger);cursor:pointer;font-size:12px;opacity:.7}
+.clear-btn:hover{opacity:1;text-decoration:underline}
+/* ── Kanban ── */
+.kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:640px){.kanban{grid-template-columns:1fr}}
+.kanban-col{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 2px 8px var(--shadow);min-height:200px}
+.kanban-col-header{font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--border);color:var(--sub)}
+.kanban-col[data-status=todo] .kanban-col-header{color:#1e88e5;border-color:#1e88e5}
+.kanban-col[data-status=doing] .kanban-col-header{color:#fb8c00;border-color:#fb8c00}
+.kanban-col[data-status=done] .kanban-col-header{color:#43a047;border-color:#43a047}
+.kanban-card{background:var(--item);border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:13px;border-left:3px solid var(--border);cursor:grab;transition:background .2s}
+.kanban-card:hover{background:var(--item-h)}
+.kanban-card.completed{text-decoration:line-through;color:var(--muted)}
+.kanban-card .k-meta{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.kanban-move{display:flex;gap:4px;margin-top:6px}
+.kanban-move button{flex:1;padding:3px;border:1px solid var(--border);background:transparent;border-radius:4px;font-size:11px;cursor:pointer;color:var(--sub);transition:all .2s}
+.kanban-move button:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+/* ── Eisenhower ── */
+.matrix{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:12px;min-height:520px}
+.quadrant{border-radius:12px;padding:14px;overflow-y:auto;box-shadow:0 2px 8px var(--shadow)}
+.quadrant h3{font-size:13px;font-weight:700;margin-bottom:4px}
+.quadrant p{font-size:11px;color:var(--sub);margin-bottom:10px}
+.q-ui{background:#fff8e1;border:2px solid #ffd54f}
+.q-udi{background:#e3f2fd;border:2px solid #90caf9}
+.q-uni{background:#fce4ec;border:2px solid #ef9a9a}
+.q-udni{background:#f1f8e9;border:2px solid #a5d6a7}
+[data-theme=dark] .q-ui{background:#2a2400;border-color:#8a7000}
+[data-theme=dark] .q-udi{background:#001b2e;border-color:#1e5080}
+[data-theme=dark] .q-uni{background:#2a0a0a;border-color:#8a2020}
+[data-theme=dark] .q-udni{background:#0a1e0a;border-color:#2a6020}
+.q-card{background:var(--card);border-radius:6px;padding:8px 10px;margin-bottom:6px;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:6px}
+.q-card.completed{text-decoration:line-through;color:var(--muted)}
+/* ── Brain Dump ── */
+.dump-box{background:var(--card);border-radius:12px;padding:20px;box-shadow:0 2px 8px var(--shadow);margin-bottom:20px}
+.dump-box textarea{width:100%;min-height:140px;padding:12px;border:2px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);outline:none;resize:vertical;font-family:inherit;line-height:1.6;transition:border .2s,background .3s}
+.dump-box textarea:focus{border-color:var(--accent)}
+.dump-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.btn-secondary{padding:9px 16px;border:1px solid var(--border);background:transparent;color:var(--text);border-radius:8px;font-size:13px;cursor:pointer;transition:all .2s}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.btn-success{padding:9px 16px;background:#43a047;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;transition:background .2s}
+.btn-success:hover{background:#388e3c}
+.dump-preview{margin-top:16px}
+.dump-preview h4{font-size:13px;font-weight:700;color:var(--sub);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.dump-item{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--item);border-radius:6px;margin-bottom:6px;font-size:13px}
+.dump-item input[type=checkbox]{accent-color:var(--accent)}
+.dump-item-text{flex:1}
+.dump-select{padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:11px;background:var(--bg);color:var(--text)}
+/* ── Daily Goals ── */
+.goals-header{background:var(--card);border-radius:12px;padding:18px;margin-bottom:16px;box-shadow:0 2px 8px var(--shadow)}
+.goals-header h3{font-size:14px;font-weight:700;margin-bottom:4px}
+.goals-header p{font-size:12px;color:var(--sub)}
+.goals-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:580px){.goals-grid{grid-template-columns:1fr}}
+.goals-section{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 2px 8px var(--shadow)}
+.goals-section h4{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--sub);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.goal-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--item);border-radius:7px;margin-bottom:6px;font-size:13px}
+.goal-item input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px}
+.goal-item .goal-text{flex:1}
+.goal-item.completed .goal-text{text-decoration:line-through;color:var(--muted)}
+/* ── Empty ── */
+.empty{text-align:center;color:var(--muted);padding:40px 0;font-size:14px}
+/* ── Tag input ── */
+.tag-input-wrap{display:flex;gap:6px;align-items:center}
+.tag-input{padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--bg);color:var(--text);width:120px}
+</style>
 </head>
 <body>
-  <div class="container">
 
-    <!-- Login View -->
-    <div id="loginView">
-      <div class="login-header">
-        <h1>✅ Todo App</h1>
-        <p>Sign in to manage your tasks</p>
-      </div>
-      <div class="form-group">
-        <label>Username</label>
-        <input id="loginUser" type="text" placeholder="Enter username" autocomplete="username" />
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input id="loginPass" type="password" placeholder="Enter password" autocomplete="current-password" />
-      </div>
-      <button class="btn-full" onclick="login()">Sign In</button>
-      <div class="login-error" id="loginError"></div>
+<!-- ══ AUTH ══════════════════════════════════════════════ -->
+<div id="authWrap" class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">✅ <span>Todo</span></div>
+    <div class="auth-sub">Smart task management</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="showAuthTab('login')">Sign In</button>
+      <button class="auth-tab" onclick="showAuthTab('register')">Register</button>
     </div>
-
-    <!-- App View -->
-    <div id="appView">
-      <div class="app-header">
-        <h1>✅ <span>Todo</span></h1>
-        <div class="header-right">
-          <!-- Dark mode toggle -->
-          <div class="theme-toggle" onclick="toggleTheme()">
-            <span class="icon">☀️</span>
-            <div class="toggle-track"><div class="toggle-knob"></div></div>
-            <span class="icon">🌙</span>
-          </div>
-          <span class="username-badge" id="usernameLabel"></span>
-          <button class="logout-btn" onclick="logout()">Sign out</button>
-        </div>
-      </div>
-
-      <div class="input-row">
-        <input id="todoInput" type="text" placeholder="What needs to be done?" />
-        <button onclick="addTodo()">Add</button>
-      </div>
-      <div class="filters">
-        <button class="active" onclick="setFilter('all', this)">All</button>
-        <button onclick="setFilter('active', this)">Active</button>
-        <button onclick="setFilter('completed', this)">Completed</button>
-      </div>
-      <ul class="todo-list" id="todoList"></ul>
-      <div class="footer">
-        <span id="countLabel">0 items left</span>
-        <button class="clear-btn" onclick="clearCompleted()">Clear completed</button>
-      </div>
+    <!-- Login -->
+    <div id="loginForm">
+      <div class="field"><label>Username</label><input id="lUser" type="text" placeholder="Enter username" autocomplete="username"/></div>
+      <div class="field"><label>Password</label><input id="lPass" type="password" placeholder="Enter password" autocomplete="current-password"/></div>
+      <button class="btn-primary" onclick="login()">Sign In</button>
     </div>
+    <!-- Register -->
+    <div id="registerForm" style="display:none">
+      <div class="field"><label>Username</label><input id="rUser" type="text" placeholder="Choose a username" autocomplete="username"/></div>
+      <div class="field"><label>Password</label><input id="rPass" type="password" placeholder="Min 6 characters" autocomplete="new-password"/></div>
+      <div class="field"><label>Confirm Password</label><input id="rPass2" type="password" placeholder="Repeat password" autocomplete="new-password"/></div>
+      <button class="btn-primary" onclick="register()">Create Account</button>
+    </div>
+    <div class="auth-err" id="authErr"></div>
+  </div>
+</div>
 
+<!-- ══ APP ════════════════════════════════════════════════ -->
+<div id="app">
+  <div class="topbar">
+    <span class="topbar-logo">✅ Todo</span>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="switchView('list')">📋 List</button>
+      <button class="nav-tab" onclick="switchView('kanban')">🗂 Kanban</button>
+      <button class="nav-tab" onclick="switchView('matrix')">🎯 Matrix</button>
+      <button class="nav-tab" onclick="switchView('goals')">🏆 Daily Goals</button>
+      <button class="nav-tab" onclick="switchView('dump')">🧠 Brain Dump</button>
+    </div>
+    <div class="topbar-right">
+      <span class="user-chip" id="userChip">👤</span>
+      <button class="theme-btn" onclick="toggleTheme()" title="Toggle dark mode">🌙</button>
+      <button class="logout-btn" onclick="logout()">Sign out</button>
+    </div>
   </div>
 
-  <script>
-    let todos = [];
-    let filter = 'all';
-    let authToken = localStorage.getItem('authToken');
-    let currentUser = localStorage.getItem('authUser');
+  <!-- List View -->
+  <div id="viewList" class="view active">
+    <div class="add-bar">
+      <div class="add-row">
+        <input id="todoText" type="text" placeholder="Add a task…" />
+        <button onclick="addTodo()">Add</button>
+      </div>
+      <div class="add-meta">
+        <select id="todoPriority">
+          <option value="high">🔴 High</option>
+          <option value="medium" selected>🟡 Medium</option>
+          <option value="low">🟢 Low</option>
+        </select>
+        <select id="todoColor">
+          <option value="default">⚪ No color</option>
+          <option value="red">🔴 Red</option>
+          <option value="orange">🟠 Orange</option>
+          <option value="green">🟢 Green</option>
+          <option value="blue">🔵 Blue</option>
+          <option value="purple">🟣 Purple</option>
+        </select>
+        <select id="todoQuadrant">
+          <option value="">📍 Quadrant</option>
+          <option value="ui">🔴 Urgent+Important</option>
+          <option value="udi">🔵 Not Urgent+Important</option>
+          <option value="uni">🟡 Urgent+Not Important</option>
+          <option value="udni">🟢 Neither</option>
+        </select>
+        <div class="tag-input-wrap">
+          <input class="tag-input" id="todoTags" type="text" placeholder="tags, comma-sep" />
+        </div>
+      </div>
+    </div>
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+      <button class="filter-btn" onclick="setFilter('active',this)">Active</button>
+      <button class="filter-btn" onclick="setFilter('completed',this)">Done</button>
+      <button class="filter-btn" onclick="setFilter('high',this)">🔴 High</button>
+      <button class="filter-btn" onclick="setFilter('medium',this)">🟡 Medium</button>
+      <button class="filter-btn" onclick="setFilter('low',this)">🟢 Low</button>
+      <select class="sort-select" onchange="setSort(this.value)">
+        <option value="priority">Sort: Priority</option>
+        <option value="created">Sort: Created</option>
+        <option value="alpha">Sort: A-Z</option>
+      </select>
+    </div>
+    <div id="todoList"></div>
+    <div class="footer-bar">
+      <span id="countLabel">0 items left</span>
+      <button class="clear-btn" onclick="clearCompleted()">Clear completed</button>
+    </div>
+  </div>
 
-    // ── Theme ────────────────────────────────────────────
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
+  <!-- Kanban View -->
+  <div id="viewKanban" class="view">
+    <div class="view-header"><span class="view-title">🗂 Kanban Board</span></div>
+    <div class="add-bar">
+      <div class="add-row">
+        <input id="kText" type="text" placeholder="Add a task…" />
+        <select id="kStatus" style="padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text)">
+          <option value="todo">To Do</option>
+          <option value="doing">In Progress</option>
+          <option value="done">Done</option>
+        </select>
+        <button onclick="addKanbanTodo()">Add</button>
+      </div>
+    </div>
+    <div class="kanban">
+      <div class="kanban-col" data-status="todo"><div class="kanban-col-header">📋 To Do</div><div id="kTodo"></div></div>
+      <div class="kanban-col" data-status="doing"><div class="kanban-col-header">⚡ In Progress</div><div id="kDoing"></div></div>
+      <div class="kanban-col" data-status="done"><div class="kanban-col-header">✅ Done</div><div id="kDone"></div></div>
+    </div>
+  </div>
 
-    function toggleTheme() {
-      const current = document.documentElement.getAttribute('data-theme');
-      const next = current === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', next);
-      localStorage.setItem('theme', next);
-    }
+  <!-- Eisenhower Matrix View -->
+  <div id="viewMatrix" class="view">
+    <div class="view-header"><span class="view-title">🎯 Eisenhower Matrix</span></div>
+    <div class="matrix">
+      <div class="quadrant q-ui">
+        <h3>🔴 Do First</h3>
+        <p>Urgent + Important</p>
+        <div id="qUI"></div>
+      </div>
+      <div class="quadrant q-udi">
+        <h3>🔵 Schedule</h3>
+        <p>Not Urgent + Important</p>
+        <div id="qUDI"></div>
+      </div>
+      <div class="quadrant q-uni">
+        <h3>🟡 Delegate</h3>
+        <p>Urgent + Not Important</p>
+        <div id="qUNI"></div>
+      </div>
+      <div class="quadrant q-udni">
+        <h3>🟢 Eliminate</h3>
+        <p>Not Urgent + Not Important</p>
+        <div id="qUDNI"></div>
+      </div>
+    </div>
+  </div>
 
-    // ── Auth ─────────────────────────────────────────────
-    async function login() {
-      const username = document.getElementById('loginUser').value.trim();
-      const password = document.getElementById('loginPass').value;
-      const errorEl = document.getElementById('loginError');
-      errorEl.textContent = '';
-      if (!username || !password) {
-        errorEl.textContent = 'Please enter username and password.';
-        return;
-      }
-      try {
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
-        });
-        const data = await res.json();
-        if (!res.ok) { errorEl.textContent = data.error || 'Login failed'; return; }
-        authToken = data.token;
-        currentUser = data.username;
-        localStorage.setItem('authToken', authToken);
-        localStorage.setItem('authUser', currentUser);
-        showApp();
-      } catch (e) {
-        errorEl.textContent = 'Connection error. Try again.';
-      }
-    }
+  <!-- Daily Goals View -->
+  <div id="viewGoals" class="view">
+    <div class="goals-header">
+      <h3>🏆 Daily Goals</h3>
+      <p>Focus on 3 high-impact tasks today. Everything else goes to the back burner.</p>
+    </div>
+    <div class="goals-grid">
+      <div class="goals-section">
+        <h4>⭐ Today's Top 3-5</h4>
+        <div id="topGoals"></div>
+        <button class="btn-secondary" style="width:100%;margin-top:8px" onclick="openTopGoalPicker()">+ Pin a task</button>
+      </div>
+      <div class="goals-section">
+        <h4>🗄 Back Burner</h4>
+        <div id="backBurner"></div>
+      </div>
+    </div>
+  </div>
 
-    async function logout() {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: { 'x-auth-token': authToken }
-      }).catch(() => {});
-      authToken = null;
-      currentUser = null;
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('authUser');
-      showLogin();
-    }
+  <!-- Brain Dump View -->
+  <div id="viewDump" class="view">
+    <div class="dump-box">
+      <h3 style="font-size:15px;font-weight:700;margin-bottom:6px">🧠 Brain Dump</h3>
+      <p style="font-size:12px;color:var(--sub);margin-bottom:12px">Dump everything on your mind — one item per line. Then filter and prioritize.</p>
+      <textarea id="dumpText" placeholder="Write emails&#10;Call dentist&#10;Review Q3 report&#10;Fix login bug&#10;..."></textarea>
+      <div class="dump-actions">
+        <button class="btn-secondary" onclick="parseDump()">Parse Items</button>
+        <button class="btn-success" onclick="saveDump()">Save All to Todos</button>
+        <button class="btn-secondary" onclick="clearDump()">Clear</button>
+      </div>
+    </div>
+    <div class="dump-preview" id="dumpPreview"></div>
+  </div>
+</div><!-- #app -->
 
-    function showApp() {
-      document.getElementById('loginView').style.display = 'none';
-      document.getElementById('appView').style.display = 'block';
-      document.getElementById('usernameLabel').textContent = `👤 ${currentUser}`;
-      fetchTodos();
-    }
+<script>
+// ── State ────────────────────────────────────────────────
+let todos=[], filter='all', sortBy='priority', authToken=null, currentUser=null;
+let dumpItems=[];
 
-    function showLogin() {
-      document.getElementById('loginView').style.display = 'block';
-      document.getElementById('appView').style.display = 'none';
-      document.getElementById('loginPass').value = '';
-      document.getElementById('loginError').textContent = '';
-    }
+// ── Theme ────────────────────────────────────────────────
+const savedTheme=localStorage.getItem('theme')||'light';
+document.documentElement.setAttribute('data-theme',savedTheme);
+function toggleTheme(){
+  const t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',t);
+  localStorage.setItem('theme',t);
+}
 
-    // Check session on load
-    async function checkSession() {
-      if (!authToken) return showLogin();
-      try {
-        const res = await fetch('/api/auth/me', { headers: { 'x-auth-token': authToken } });
-        if (res.ok) { showApp(); } else { showLogin(); }
-      } catch { showLogin(); }
-    }
+// ── Auth tabs ────────────────────────────────────────────
+function showAuthTab(tab){
+  document.querySelectorAll('.auth-tab').forEach((b,i)=>b.classList.toggle('active',(tab==='login'&&i===0)||(tab==='register'&&i===1)));
+  document.getElementById('loginForm').style.display=tab==='login'?'block':'none';
+  document.getElementById('registerForm').style.display=tab==='register'?'block':'none';
+  document.getElementById('authErr').textContent='';
+}
 
-    // ── Todos ─────────────────────────────────────────────
-    async function fetchTodos() {
-      const res = await fetch('/api/todos', { headers: { 'x-auth-token': authToken } });
-      if (res.status === 401) { showLogin(); return; }
-      todos = await res.json();
-      render();
-    }
+async function login(){
+  const username=document.getElementById('lUser').value.trim();
+  const password=document.getElementById('lPass').value;
+  const err=document.getElementById('authErr');
+  err.textContent='';
+  if(!username||!password){err.textContent='Enter username and password';return}
+  const res=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password})});
+  const data=await res.json();
+  if(!res.ok){err.textContent=data.error||'Login failed';return}
+  setSession(data);
+}
 
-    async function addTodo() {
-      const input = document.getElementById('todoInput');
-      const text = input.value.trim();
-      if (!text) return;
-      await fetch('/api/todos', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
-        body: JSON.stringify({ text })
-      });
-      input.value = '';
-      fetchTodos();
-    }
+async function register(){
+  const username=document.getElementById('rUser').value.trim();
+  const password=document.getElementById('rPass').value;
+  const confirm=document.getElementById('rPass2').value;
+  const err=document.getElementById('authErr');
+  err.textContent='';
+  if(!username||!password){err.textContent='Fill all fields';return}
+  if(password!==confirm){err.textContent='Passwords do not match';return}
+  const res=await fetch('/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password})});
+  const data=await res.json();
+  if(!res.ok){err.textContent=data.error||'Registration failed';return}
+  setSession(data);
+}
 
-    async function toggleTodo(id, completed) {
-      await fetch(`/api/todos/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
-        body: JSON.stringify({ completed })
-      });
-      fetchTodos();
-    }
+function setSession(data){
+  authToken=data.token; currentUser=data.username;
+  localStorage.setItem('authToken',authToken);
+  localStorage.setItem('authUser',currentUser);
+  showApp();
+}
 
-    async function deleteTodo(id) {
-      await fetch(`/api/todos/${id}`, { method: 'DELETE', headers: { 'x-auth-token': authToken } });
-      fetchTodos();
-    }
+async function logout(){
+  await fetch('/api/auth/logout',{method:'POST',headers:{'x-auth-token':authToken}}).catch(()=>{});
+  authToken=null; currentUser=null;
+  localStorage.removeItem('authToken'); localStorage.removeItem('authUser');
+  document.getElementById('authWrap').style.display='flex';
+  document.getElementById('app').style.display='none';
+}
 
-    async function clearCompleted() {
-      const completed = todos.filter(t => t.completed);
-      await Promise.all(completed.map(t =>
-        fetch(`/api/todos/${t.id}`, { method: 'DELETE', headers: { 'x-auth-token': authToken } })
-      ));
-      fetchTodos();
-    }
+function showApp(){
+  document.getElementById('authWrap').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('userChip').textContent='👤 '+currentUser;
+  fetchTodos();
+}
 
-    function setFilter(f, btn) {
-      filter = f;
-      document.querySelectorAll('.filters button').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      render();
-    }
+async function checkSession(){
+  authToken=localStorage.getItem('authToken');
+  currentUser=localStorage.getItem('authUser');
+  if(!authToken){return}
+  const res=await fetch('/api/auth/me',{headers:{'x-auth-token':authToken}});
+  if(res.ok){showApp()}
+}
 
-    function render() {
-      const list = document.getElementById('todoList');
-      const filtered = todos.filter(t => {
-        if (filter === 'active') return !t.completed;
-        if (filter === 'completed') return t.completed;
-        return true;
-      });
-      if (filtered.length === 0) {
-        list.innerHTML = '<div class="empty">No todos here 🎉</div>';
-      } else {
-        list.innerHTML = filtered.map(t => `
-          <li class="todo-item ${t.completed ? 'completed' : ''}">
-            <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTodo(${t.id}, this.checked)" />
-            <span class="todo-text">${escapeHtml(t.text)}</span>
-            <button class="delete-btn" onclick="deleteTodo(${t.id})">✕</button>
-          </li>
-        `).join('');
-      }
-      const active = todos.filter(t => !t.completed).length;
-      document.getElementById('countLabel').textContent = `${active} item${active !== 1 ? 's' : ''} left`;
-    }
+// ── Navigation ───────────────────────────────────────────
+function switchView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('view'+name.charAt(0).toUpperCase()+name.slice(1)).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if(name==='kanban')renderKanban();
+  if(name==='matrix')renderMatrix();
+  if(name==='goals')renderGoals();
+}
 
-    function escapeHtml(text) {
-      const d = document.createElement('div');
-      d.appendChild(document.createTextNode(text));
-      return d.innerHTML;
-    }
+// ── API helpers ──────────────────────────────────────────
+function headers(extra={}){return{'Content-Type':'application/json','x-auth-token':authToken,...extra}}
+async function fetchTodos(){
+  const r=await fetch('/api/todos',{headers:headers()});
+  if(r.status===401){logout();return}
+  todos=await r.json();
+  renderAll();
+}
+function renderAll(){renderList();renderKanban();renderMatrix();renderGoals()}
 
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Enter') {
-        if (document.getElementById('appView').style.display !== 'none') addTodo();
-        else login();
-      }
-    });
+// ── Add Todo ─────────────────────────────────────────────
+async function addTodo(){
+  const text=document.getElementById('todoText').value.trim();
+  if(!text)return;
+  const priority=document.getElementById('todoPriority').value;
+  const color=document.getElementById('todoColor').value;
+  const quadrant=document.getElementById('todoQuadrant').value||null;
+  const rawTags=document.getElementById('todoTags').value;
+  const tags=rawTags.split(',').map(t=>t.trim()).filter(Boolean);
+  await fetch('/api/todos',{method:'POST',headers:headers(),body:JSON.stringify({text,priority,color,quadrant,tags})});
+  document.getElementById('todoText').value='';
+  document.getElementById('todoTags').value='';
+  fetchTodos();
+}
 
-    checkSession();
-  </script>
+async function addKanbanTodo(){
+  const text=document.getElementById('kText').value.trim();
+  const status=document.getElementById('kStatus').value;
+  if(!text)return;
+  await fetch('/api/todos',{method:'POST',headers:headers(),body:JSON.stringify({text,status})});
+  document.getElementById('kText').value='';
+  fetchTodos();
+}
+
+async function toggleTodo(id,completed){
+  await fetch('/api/todos/'+id,{method:'PATCH',headers:headers(),body:JSON.stringify({completed})});
+  fetchTodos();
+}
+async function deleteTodo(id){
+  await fetch('/api/todos/'+id,{method:'DELETE',headers:headers()});
+  fetchTodos();
+}
+async function moveKanban(id,status){
+  await fetch('/api/todos/'+id,{method:'PATCH',headers:headers(),body:JSON.stringify({status})});
+  fetchTodos();
+}
+async function toggleGoal(id,isTopGoal){
+  await fetch('/api/todos/'+id,{method:'PATCH',headers:headers(),body:JSON.stringify({isTopGoal})});
+  fetchTodos();
+}
+async function clearCompleted(){
+  await Promise.all(todos.filter(t=>t.completed).map(t=>fetch('/api/todos/'+t.id,{method:'DELETE',headers:headers()})));
+  fetchTodos();
+}
+
+// ── List Render ──────────────────────────────────────────
+function setFilter(f,btn){
+  filter=f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderList();
+}
+function setSort(s){sortBy=s;renderList()}
+
+const PRIO_ORDER={high:0,medium:1,low:2};
+function sortedTodos(list){
+  return [...list].sort((a,b)=>{
+    if(sortBy==='priority') return PRIO_ORDER[a.priority]-PRIO_ORDER[b.priority];
+    if(sortBy==='alpha') return a.text.localeCompare(b.text);
+    return new Date(a.createdAt)-new Date(b.createdAt);
+  });
+}
+
+function renderList(){
+  const el=document.getElementById('todoList');
+  let filtered=todos.filter(t=>{
+    if(filter==='active') return !t.completed;
+    if(filter==='completed') return t.completed;
+    if(filter==='high') return t.priority==='high';
+    if(filter==='medium') return t.priority==='medium';
+    if(filter==='low') return t.priority==='low';
+    return true;
+  });
+  filtered=sortedTodos(filtered);
+  if(!filtered.length){el.innerHTML='<div class="empty">No tasks here 🎉</div>';updateCount();return}
+  el.innerHTML=filtered.map(t=>`
+    <div class="todo-item ${t.completed?'completed':''} color-${t.color||'default'}">
+      <input type="checkbox" ${t.completed?'checked':''} onchange="toggleTodo(${t.id},this.checked)"/>
+      <div class="todo-body">
+        <div class="todo-text">${esc(t.text)}</div>
+        <div class="todo-meta">
+          <span class="priority-badge p-${t.priority}">${{high:'🔴 High',medium:'🟡 Medium',low:'🟢 Low'}[t.priority]}</span>
+          ${t.quadrant?`<span class="tag">${{ui:'🔴 Urgent+Imp',udi:'🔵 Imp',uni:'🟡 Urgent',udni:'🟢 Later'}[t.quadrant]}</span>`:''}
+          ${(t.tags||[]).map(tag=>`<span class="tag">${esc(tag)}</span>`).join('')}
+        </div>
+      </div>
+      <div class="todo-actions">
+        <button class="icon-btn" onclick="deleteTodo(${t.id})">✕</button>
+      </div>
+    </div>`).join('');
+  updateCount();
+}
+function updateCount(){
+  const n=todos.filter(t=>!t.completed).length;
+  document.getElementById('countLabel').textContent=`${n} item${n!==1?'s':''} left`;
+}
+
+// ── Kanban Render ─────────────────────────────────────────
+function renderKanban(){
+  ['todo','doing','done'].forEach(s=>{
+    const col=document.getElementById('k'+s.charAt(0).toUpperCase()+s.slice(1));
+    if(!col)return;
+    const items=todos.filter(t=>t.status===s);
+    if(!items.length){col.innerHTML='<div class="empty" style="padding:20px 0;font-size:13px">Empty</div>';return}
+    col.innerHTML=items.map(t=>`
+      <div class="kanban-card ${t.completed?'completed':''} color-${t.color||'default'}">
+        <div>${esc(t.text)}</div>
+        <div class="k-meta">
+          <span class="priority-badge p-${t.priority}">${{high:'🔴',medium:'🟡',low:'🟢'}[t.priority]}</span>
+          ${(t.tags||[]).map(tag=>`<span class="tag">${esc(tag)}</span>`).join('')}
+        </div>
+        <div class="kanban-move">
+          ${s!=='todo'?`<button onclick="moveKanban(${t.id},'todo')">← To Do</button>`:''}
+          ${s!=='doing'?`<button onclick="moveKanban(${t.id},'doing')">⚡ Doing</button>`:''}
+          ${s!=='done'?`<button onclick="moveKanban(${t.id},'done')">✅ Done</button>`:''}
+          <button onclick="deleteTodo(${t.id})" style="color:var(--danger)">✕</button>
+        </div>
+      </div>`).join('');
+  });
+}
+
+// ── Matrix Render ─────────────────────────────────────────
+function renderMatrix(){
+  const map={ui:'qUI',udi:'qUDI',uni:'qUNI',udni:'qUDNI'};
+  Object.entries(map).forEach(([q,id])=>{
+    const el=document.getElementById(id); if(!el)return;
+    const items=todos.filter(t=>t.quadrant===q);
+    if(!items.length){el.innerHTML='<div style="font-size:12px;color:var(--muted);text-align:center;padding:12px">No tasks</div>';return}
+    el.innerHTML=items.map(t=>`
+      <div class="q-card ${t.completed?'completed':''}">
+        <span>${esc(t.text)}</span>
+        <input type="checkbox" ${t.completed?'checked':''} onchange="toggleTodo(${t.id},this.checked)" style="accent-color:var(--accent)"/>
+      </div>`).join('');
+  });
+}
+
+// ── Daily Goals Render ────────────────────────────────────
+function renderGoals(){
+  const topEl=document.getElementById('topGoals');
+  const backEl=document.getElementById('backBurner');
+  if(!topEl||!backEl)return;
+  const top=sortedTodos(todos.filter(t=>t.isTopGoal&&!t.completed));
+  const back=sortedTodos(todos.filter(t=>!t.isTopGoal&&!t.completed));
+  const done=todos.filter(t=>t.completed&&t.isTopGoal);
+  const allTop=[...top,...done];
+  topEl.innerHTML=allTop.length?allTop.map(t=>`
+    <div class="goal-item ${t.completed?'completed':''}">
+      <input type="checkbox" ${t.completed?'checked':''} onchange="toggleTodo(${t.id},this.checked)"/>
+      <span class="goal-text">${esc(t.text)}</span>
+      <button class="icon-btn" onclick="toggleGoal(${t.id},false)" title="Move to back burner">↓</button>
+    </div>`).join(''):'<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px">No top goals pinned</div>';
+  backEl.innerHTML=back.length?back.map(t=>`
+    <div class="goal-item">
+      <span class="goal-text">${esc(t.text)}</span>
+      <span class="priority-badge p-${t.priority}" style="font-size:10px">${t.priority}</span>
+      <button class="icon-btn" onclick="toggleGoal(${t.id},true)" title="Pin to top goals">⭐</button>
+    </div>`).join(''):'<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px">All tasks pinned!</div>';
+}
+
+function openTopGoalPicker(){switchView('list')}
+
+// ── Brain Dump ────────────────────────────────────────────
+function parseDump(){
+  const raw=document.getElementById('dumpText').value;
+  dumpItems=raw.split('\n').map(l=>l.trim()).filter(Boolean).map(text=>({text,include:true,priority:'medium'}));
+  const preview=document.getElementById('dumpPreview');
+  if(!dumpItems.length){preview.innerHTML='';return}
+  preview.innerHTML=`<h4>Preview (${dumpItems.length} items)</h4>`+dumpItems.map((item,i)=>`
+    <div class="dump-item">
+      <input type="checkbox" checked onchange="dumpItems[${i}].include=this.checked"/>
+      <span class="dump-item-text">${esc(item.text)}</span>
+      <select class="dump-select" onchange="dumpItems[${i}].priority=this.value">
+        <option value="high">🔴 High</option>
+        <option value="medium" selected>🟡 Medium</option>
+        <option value="low">🟢 Low</option>
+      </select>
+    </div>`).join('');
+}
+
+async function saveDump(){
+  const toSave=dumpItems.filter(i=>i.include);
+  if(!toSave.length){alert('No items selected');return}
+  const texts=toSave.map(i=>i.text);
+  const priority=toSave[0].priority; // simplified: use first item's priority
+  await fetch('/api/todos/bulk',{method:'POST',headers:headers(),body:JSON.stringify({texts,priority})});
+  document.getElementById('dumpText').value='';
+  document.getElementById('dumpPreview').innerHTML='';
+  dumpItems=[];
+  fetchTodos();
+  alert(`✅ ${texts.length} tasks added!`);
+}
+
+function clearDump(){
+  document.getElementById('dumpText').value='';
+  document.getElementById('dumpPreview').innerHTML='';
+  dumpItems=[];
+}
+
+// ── Utils ────────────────────────────────────────────────
+function esc(s){const d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
+
+// ── Keyboard ─────────────────────────────────────────────
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;
+  if(document.getElementById('app').style.display!=='none'){
+    if(document.activeElement===document.getElementById('todoText'))addTodo();
+    if(document.activeElement===document.getElementById('kText'))addKanbanTodo();
+    if(document.activeElement===document.getElementById('lUser')||document.activeElement===document.getElementById('lPass'))login();
+    if(document.activeElement===document.getElementById('rUser')||document.activeElement===document.getElementById('rPass')||document.activeElement===document.getElementById('rPass2'))register();
+  }
+});
+
+checkSession();
+</script>
 </body>
 </html>
