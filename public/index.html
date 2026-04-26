@@ -1,53 +1,205 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Todo App</title>
   <style>
+    :root {
+      --bg: #f0f2f5;
+      --card: #ffffff;
+      --text: #1a1a2e;
+      --subtext: #666;
+      --input-border: #e0e0e0;
+      --input-focus: #6c63ff;
+      --item-bg: #f8f9fa;
+      --item-hover: #f0eeff;
+      --shadow: rgba(0,0,0,0.1);
+      --btn-primary: #6c63ff;
+      --btn-primary-hover: #574fd6;
+      --danger: #e53935;
+      --muted: #aaa;
+      --toggle-bg: #e0e0e0;
+      --toggle-knob: #fff;
+    }
+    [data-theme="dark"] {
+      --bg: #0f0f1a;
+      --card: #1a1a2e;
+      --text: #e8e8f0;
+      --subtext: #9090a8;
+      --input-border: #2e2e4a;
+      --input-focus: #8b7fff;
+      --item-bg: #16162a;
+      --item-hover: #23234a;
+      --shadow: rgba(0,0,0,0.4);
+      --btn-primary: #7c73ff;
+      --btn-primary-hover: #6c63ff;
+      --danger: #ff5252;
+      --muted: #555575;
+      --toggle-bg: #7c73ff;
+      --toggle-knob: #fff;
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #f0f2f5;
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
       display: flex;
       justify-content: center;
       padding: 40px 16px;
+      transition: background 0.3s, color 0.3s;
     }
     .container {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+      background: var(--card);
+      border-radius: 16px;
+      box-shadow: 0 4px 24px var(--shadow);
       width: 100%;
       max-width: 520px;
       padding: 32px;
       height: fit-content;
+      transition: background 0.3s, box-shadow 0.3s;
     }
-    h1 {
-      font-size: 28px;
-      color: #1a1a2e;
-      margin-bottom: 24px;
+
+    /* ── Login ── */
+    #loginView { display: block; }
+    #appView { display: none; }
+
+    .login-header {
       text-align: center;
+      margin-bottom: 28px;
     }
-    h1 span { color: #6c63ff; }
+    .login-header h1 { font-size: 26px; margin-bottom: 6px; }
+    .login-header p { color: var(--subtext); font-size: 14px; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--subtext);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid var(--input-border);
+      border-radius: 8px;
+      font-size: 15px;
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+      transition: border 0.2s, background 0.3s;
+    }
+    .form-group input:focus { border-color: var(--input-focus); }
+
+    .btn-full {
+      width: 100%;
+      padding: 13px;
+      background: var(--btn-primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 4px;
+    }
+    .btn-full:hover { background: var(--btn-primary-hover); }
+
+    .login-error {
+      color: var(--danger);
+      font-size: 13px;
+      text-align: center;
+      margin-top: 12px;
+      min-height: 18px;
+    }
+
+    /* ── App Header ── */
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .app-header h1 { font-size: 24px; }
+    .app-header h1 span { color: var(--btn-primary); }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .username-badge {
+      font-size: 13px;
+      color: var(--subtext);
+    }
+    .logout-btn {
+      background: none;
+      border: 1px solid var(--input-border);
+      color: var(--subtext);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .logout-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+    /* ── Dark mode toggle ── */
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .theme-toggle .icon { font-size: 14px; }
+    .toggle-track {
+      width: 36px;
+      height: 20px;
+      background: var(--toggle-bg);
+      border-radius: 20px;
+      position: relative;
+      transition: background 0.3s;
+    }
+    .toggle-knob {
+      width: 14px;
+      height: 14px;
+      background: var(--toggle-knob);
+      border-radius: 50%;
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.3s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    [data-theme="dark"] .toggle-knob { transform: translateX(16px); }
+
+    /* ── Todo input ── */
     .input-row {
       display: flex;
       gap: 8px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
     .input-row input {
       flex: 1;
       padding: 12px 16px;
-      border: 2px solid #e0e0e0;
+      border: 2px solid var(--input-border);
       border-radius: 8px;
       font-size: 15px;
+      background: var(--bg);
+      color: var(--text);
       outline: none;
-      transition: border 0.2s;
+      transition: border 0.2s, background 0.3s;
     }
-    .input-row input:focus { border-color: #6c63ff; }
+    .input-row input:focus { border-color: var(--input-focus); }
     .input-row button {
       padding: 12px 20px;
-      background: #6c63ff;
+      background: var(--btn-primary);
       color: #fff;
       border: none;
       border-radius: 8px;
@@ -55,7 +207,9 @@
       cursor: pointer;
       transition: background 0.2s;
     }
-    .input-row button:hover { background: #574fd6; }
+    .input-row button:hover { background: var(--btn-primary-hover); }
+
+    /* ── Filters ── */
     .filters {
       display: flex;
       gap: 8px;
@@ -64,18 +218,21 @@
     .filters button {
       flex: 1;
       padding: 8px;
-      border: 2px solid #e0e0e0;
-      background: #fff;
+      border: 2px solid var(--input-border);
+      background: var(--card);
+      color: var(--text);
       border-radius: 8px;
       cursor: pointer;
       font-size: 13px;
       transition: all 0.2s;
     }
     .filters button.active {
-      border-color: #6c63ff;
-      background: #6c63ff;
+      border-color: var(--btn-primary);
+      background: var(--btn-primary);
       color: #fff;
     }
+
+    /* ── Todo list ── */
     .todo-list { list-style: none; }
     .todo-item {
       display: flex;
@@ -84,38 +241,35 @@
       padding: 14px 12px;
       border-radius: 8px;
       margin-bottom: 8px;
-      background: #f8f9fa;
+      background: var(--item-bg);
       transition: background 0.2s;
     }
-    .todo-item:hover { background: #f0eeff; }
+    .todo-item:hover { background: var(--item-hover); }
     .todo-item.completed .todo-text {
       text-decoration: line-through;
-      color: #aaa;
+      color: var(--muted);
     }
     .todo-item input[type="checkbox"] {
       width: 18px;
       height: 18px;
-      accent-color: #6c63ff;
+      accent-color: var(--btn-primary);
       cursor: pointer;
     }
-    .todo-text {
-      flex: 1;
-      font-size: 15px;
-      color: #333;
-    }
+    .todo-text { flex: 1; font-size: 15px; }
     .delete-btn {
       background: none;
       border: none;
       cursor: pointer;
-      color: #ccc;
+      color: var(--muted);
       font-size: 18px;
       line-height: 1;
       transition: color 0.2s;
     }
-    .delete-btn:hover { color: #e53935; }
+    .delete-btn:hover { color: var(--danger); }
+
     .empty {
       text-align: center;
-      color: #aaa;
+      color: var(--muted);
       padding: 32px 0;
       font-size: 15px;
     }
@@ -125,43 +279,159 @@
       justify-content: space-between;
       align-items: center;
       font-size: 13px;
-      color: #999;
+      color: var(--subtext);
     }
     .clear-btn {
       background: none;
       border: none;
-      color: #e53935;
+      color: var(--danger);
       cursor: pointer;
       font-size: 13px;
+      opacity: 0.7;
+      transition: opacity 0.2s;
     }
-    .clear-btn:hover { text-decoration: underline; }
+    .clear-btn:hover { opacity: 1; text-decoration: underline; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>✅ <span>Todo</span> List</h1>
-    <div class="input-row">
-      <input id="todoInput" type="text" placeholder="What needs to be done?" />
-      <button onclick="addTodo()">Add</button>
+
+    <!-- Login View -->
+    <div id="loginView">
+      <div class="login-header">
+        <h1>✅ Todo App</h1>
+        <p>Sign in to manage your tasks</p>
+      </div>
+      <div class="form-group">
+        <label>Username</label>
+        <input id="loginUser" type="text" placeholder="Enter username" autocomplete="username" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input id="loginPass" type="password" placeholder="Enter password" autocomplete="current-password" />
+      </div>
+      <button class="btn-full" onclick="login()">Sign In</button>
+      <div class="login-error" id="loginError"></div>
     </div>
-    <div class="filters">
-      <button class="active" onclick="setFilter('all', this)">All</button>
-      <button onclick="setFilter('active', this)">Active</button>
-      <button onclick="setFilter('completed', this)">Completed</button>
+
+    <!-- App View -->
+    <div id="appView">
+      <div class="app-header">
+        <h1>✅ <span>Todo</span></h1>
+        <div class="header-right">
+          <!-- Dark mode toggle -->
+          <div class="theme-toggle" onclick="toggleTheme()">
+            <span class="icon">☀️</span>
+            <div class="toggle-track"><div class="toggle-knob"></div></div>
+            <span class="icon">🌙</span>
+          </div>
+          <span class="username-badge" id="usernameLabel"></span>
+          <button class="logout-btn" onclick="logout()">Sign out</button>
+        </div>
+      </div>
+
+      <div class="input-row">
+        <input id="todoInput" type="text" placeholder="What needs to be done?" />
+        <button onclick="addTodo()">Add</button>
+      </div>
+      <div class="filters">
+        <button class="active" onclick="setFilter('all', this)">All</button>
+        <button onclick="setFilter('active', this)">Active</button>
+        <button onclick="setFilter('completed', this)">Completed</button>
+      </div>
+      <ul class="todo-list" id="todoList"></ul>
+      <div class="footer">
+        <span id="countLabel">0 items left</span>
+        <button class="clear-btn" onclick="clearCompleted()">Clear completed</button>
+      </div>
     </div>
-    <ul class="todo-list" id="todoList"></ul>
-    <div class="footer">
-      <span id="countLabel">0 items left</span>
-      <button class="clear-btn" onclick="clearCompleted()">Clear completed</button>
-    </div>
+
   </div>
 
   <script>
     let todos = [];
     let filter = 'all';
+    let authToken = localStorage.getItem('authToken');
+    let currentUser = localStorage.getItem('authUser');
 
+    // ── Theme ────────────────────────────────────────────
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    }
+
+    // ── Auth ─────────────────────────────────────────────
+    async function login() {
+      const username = document.getElementById('loginUser').value.trim();
+      const password = document.getElementById('loginPass').value;
+      const errorEl = document.getElementById('loginError');
+      errorEl.textContent = '';
+      if (!username || !password) {
+        errorEl.textContent = 'Please enter username and password.';
+        return;
+      }
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (!res.ok) { errorEl.textContent = data.error || 'Login failed'; return; }
+        authToken = data.token;
+        currentUser = data.username;
+        localStorage.setItem('authToken', authToken);
+        localStorage.setItem('authUser', currentUser);
+        showApp();
+      } catch (e) {
+        errorEl.textContent = 'Connection error. Try again.';
+      }
+    }
+
+    async function logout() {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 'x-auth-token': authToken }
+      }).catch(() => {});
+      authToken = null;
+      currentUser = null;
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('authUser');
+      showLogin();
+    }
+
+    function showApp() {
+      document.getElementById('loginView').style.display = 'none';
+      document.getElementById('appView').style.display = 'block';
+      document.getElementById('usernameLabel').textContent = `👤 ${currentUser}`;
+      fetchTodos();
+    }
+
+    function showLogin() {
+      document.getElementById('loginView').style.display = 'block';
+      document.getElementById('appView').style.display = 'none';
+      document.getElementById('loginPass').value = '';
+      document.getElementById('loginError').textContent = '';
+    }
+
+    // Check session on load
+    async function checkSession() {
+      if (!authToken) return showLogin();
+      try {
+        const res = await fetch('/api/auth/me', { headers: { 'x-auth-token': authToken } });
+        if (res.ok) { showApp(); } else { showLogin(); }
+      } catch { showLogin(); }
+    }
+
+    // ── Todos ─────────────────────────────────────────────
     async function fetchTodos() {
-      const res = await fetch('/api/todos');
+      const res = await fetch('/api/todos', { headers: { 'x-auth-token': authToken } });
+      if (res.status === 401) { showLogin(); return; }
       todos = await res.json();
       render();
     }
@@ -172,7 +442,7 @@
       if (!text) return;
       await fetch('/api/todos', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
         body: JSON.stringify({ text })
       });
       input.value = '';
@@ -182,20 +452,22 @@
     async function toggleTodo(id, completed) {
       await fetch(`/api/todos/${id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
         body: JSON.stringify({ completed })
       });
       fetchTodos();
     }
 
     async function deleteTodo(id) {
-      await fetch(`/api/todos/${id}`, { method: 'DELETE' });
+      await fetch(`/api/todos/${id}`, { method: 'DELETE', headers: { 'x-auth-token': authToken } });
       fetchTodos();
     }
 
     async function clearCompleted() {
       const completed = todos.filter(t => t.completed);
-      await Promise.all(completed.map(t => fetch(`/api/todos/${t.id}`, { method: 'DELETE' })));
+      await Promise.all(completed.map(t =>
+        fetch(`/api/todos/${t.id}`, { method: 'DELETE', headers: { 'x-auth-token': authToken } })
+      ));
       fetchTodos();
     }
 
@@ -213,7 +485,6 @@
         if (filter === 'completed') return t.completed;
         return true;
       });
-
       if (filtered.length === 0) {
         list.innerHTML = '<div class="empty">No todos here 🎉</div>';
       } else {
@@ -225,7 +496,6 @@
           </li>
         `).join('');
       }
-
       const active = todos.filter(t => !t.completed).length;
       document.getElementById('countLabel').textContent = `${active} item${active !== 1 ? 's' : ''} left`;
     }
@@ -236,11 +506,14 @@
       return d.innerHTML;
     }
 
-    document.getElementById('todoInput').addEventListener('keydown', e => {
-      if (e.key === 'Enter') addTodo();
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        if (document.getElementById('appView').style.display !== 'none') addTodo();
+        else login();
+      }
     });
 
-    fetchTodos();
+    checkSession();
   </script>
 </body>
 </html>
