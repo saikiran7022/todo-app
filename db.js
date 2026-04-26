@@ -31,10 +31,13 @@ function prepare(sql) {
     run(...params) {
       const db = getDb();
       const stmt = db.prepare(sql);
-      stmt.run(params);
-      stmt.free();
+      stmt.bind(params);
+      while (stmt.step());
       const changes = db.getRowsModified();
-      const id = db.exec('SELECT last_insert_rowid()')[0]?.values[0][0];
+      // Get last insert ID via query (more reliable across sql.js versions)
+      const result = db.exec('SELECT last_insert_rowid() AS id');
+      const id = result.length && result[0].values.length ? Number(result[0].values[0][0]) : 0;
+      stmt.free();
       persist();
       return { changes, lastInsertRowid: id };
     },

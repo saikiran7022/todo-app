@@ -481,7 +481,8 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
             </div>
             <div class="add-opts">
               <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="tPair" style="accent-color:var(--accent)"/>🤝 Pair</label>
-              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="tVerify" style="accent-color:var(--accent)"/>✅ Verify</label><option value="high">🔴 High</option><option value="medium" selected>🟡 Medium</option><option value="low">🟢 Low</option></select>
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer"><input type="checkbox" id="tVerify" style="accent-color:var(--accent)"/>✅ Verify</label>
+              <select id="tPri"><option value="high">🔴 High</option><option value="medium" selected>🟡 Medium</option><option value="low">🟢 Low</option></select>
               <select id="tColor"><option value="default">⚪ No colour</option><option value="red">🔴 Red</option><option value="orange">🟠 Orange</option><option value="green">🟢 Green</option><option value="blue">🔵 Blue</option><option value="purple">🟣 Purple</option></select>
               <select id="tQuad"><option value="">📍 Quadrant</option><option value="ui">🔴 Urgent+Imp</option><option value="udi">🔵 Important</option><option value="uni">🟡 Urgent</option><option value="udni">🟢 Later</option></select>
               <input style="width:120px;padding:6px 10px;border:1px solid var(--border);border-radius:20px;font-size:12px;background:var(--bg);color:var(--text)" id="tTags" type="text" placeholder="tags, csv"/>
@@ -671,7 +672,17 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
   </div>
 </div>
 
-
+<!-- ══ INVITE SHEET ══════════════════════════════════════ -->
+<div id="inviteOverlay" class="overlay" style="display:none" onclick="closeSheet('inviteOverlay',event)">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Invite to list</div>
+    <div class="sheet-sub">Add someone by their username. They must already have an account.</div>
+    <div class="field"><label>Username</label><input id="inviteUser" type="text" placeholder="their username"/></div>
+    <button class="propose-btn" onclick="doInvite()">Send invite →</button>
+    <div class="auth-err" id="inviteErr"></div>
+  </div>
+</div>
 
 <!-- ══ CLOSING TIME ══════════════════════════════════════ -->
 <div id="closingTime" style="display:none;flex-direction:column;align-items:center">
@@ -855,18 +866,18 @@ async function fetchAll(){
   if(!Array.isArray(lists))lists=[];
   renderSidebarLists();
   if(!activeListId&&lists.length)activeListId=lists[0].id;
-  await fetchTasks();
+  if(activeListId)await fetchTasks();
   renderAll();
 }
 async function fetchTasks(){
   if(!activeListId)return;
   const r=await api('GET',`/api/tasks?list_id=${activeListId}`);
-  if(Array.isArray(r))tasks=r;
-  listMembers=await api('GET',`/api/lists/${activeListId}/members`);
-  if(!Array.isArray(listMembers))listMembers=[];
+  tasks=Array.isArray(r)?r:[];
+  const m=await api('GET',`/api/lists/${activeListId}/members`);
+  listMembers=Array.isArray(m)?m:[];
   populateSelects();
 }
-function renderAll(){renderToday();renderList();renderKanban();renderMatrix();renderGoals()}
+function renderAll(){if(!Array.isArray(tasks))tasks=[];renderToday();renderList();renderKanban();renderMatrix();renderGoals()}
 
 // ══ NAV ══════════════════════════════════════════════
 function nav(view,btn){
